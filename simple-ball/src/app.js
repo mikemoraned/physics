@@ -21,7 +21,6 @@ function clampY(y) {
 }
 
 function update(elapsedSinceLastUpdate) {
-  console.log(elapsedSinceLastUpdate);
   const speed = 0.3; // pixels per millisecond
   const distance = speed * elapsedSinceLastUpdate;
   const angle = 2 * Math.PI * Math.random();
