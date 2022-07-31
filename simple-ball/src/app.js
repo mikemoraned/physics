@@ -55,12 +55,13 @@ async function app() {
   function animate(timestamp) {
     if (start === undefined) {
       start = timestamp;
-      lastUpdate = start;
+      lastUpdate = 0;
+    } else {
+      const elapsed = timestamp - start;
+      const elapsedSinceLastUpdate = elapsed - lastUpdate;
+      update(elapsedSinceLastUpdate, ball.x, ball.y, updateBall);
+      lastUpdate = elapsed;
     }
-    const elapsed = timestamp - start;
-    const elapsedSinceLastUpdate = elapsed - lastUpdate;
-    update(elapsedSinceLastUpdate, updateBall);
-    lastUpdate = elapsed;
     draw();
 
     window.requestAnimationFrame(animate);
