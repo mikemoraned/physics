@@ -1,4 +1,16 @@
+import init, { greet } from "../engine/pkg/simple_ball_engine.js";
+
 console.log("Running");
+
+async function run() {
+  console.log("init");
+  await init();
+
+  console.log("greet");
+
+  greet("hello!");
+}
+await run();
 
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
