@@ -1,4 +1,4 @@
 [build]
   base    = "simple-ball/"
-  publish = "dist/"
+  publish = "."
   command = "npm run build"
