@@ -1,4 +1,4 @@
-h1 {
+#canvas {
   color: hotpink;
-  font-family: cursive;
+  border: 1px dashed black;
 }
