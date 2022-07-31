@@ -2,9 +2,11 @@
   "name": "simple-ball",
   "version": "0.0.1",
   "description": "",
-  "main": "index.html",
+  "source": "src/index.html",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "parcel",
+    "build": "parcel build"
   },
   "author": "",
   "license": "Apache-2.0",
