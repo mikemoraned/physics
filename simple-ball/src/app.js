@@ -1,16 +1,16 @@
-import init, { greet } from "../engine/pkg/simple_ball_engine.js";
+// import init, { greet } from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
-async function run() {
-  console.log("init");
-  await init();
+// async function app() {
+//   console.log("init");
+//   await init();
 
-  console.log("greet");
+//   console.log("greet");
 
-  greet("hello!");
-}
-await run();
+//   greet("hello!");
+// }
+// await app();
 
 const canvas = document.getElementById("canvas");
 const context = canvas.getContext("2d");
@@ -32,15 +32,19 @@ function clampY(y) {
   return Math.min(Math.max(0, y), maxY - ballRadius);
 }
 
-function update(elapsedSinceLastUpdate) {
+function updateBall(x, y) {
+  ball.x = clampX(x);
+  ball.y = clampY(y);
+}
+
+function update(elapsedSinceLastUpdate, updateFn) {
   const speed = 0.3; // pixels per millisecond
   const distance = speed * elapsedSinceLastUpdate;
   const angle = 2 * Math.PI * Math.random();
   const xChange = Math.cos(angle) * distance;
   const yChange = Math.sin(angle) * distance;
 
-  ball.x = clampX(ball.x + xChange);
-  ball.y = clampY(ball.y + yChange);
+  updateFn(ball.x + xChange, ball.y + yChange);
 }
 
 function draw() {
@@ -60,7 +64,7 @@ function animate(timestamp) {
   }
   const elapsed = timestamp - start;
   const elapsedSinceLastUpdate = elapsed - lastUpdate;
-  update(elapsedSinceLastUpdate);
+  update(elapsedSinceLastUpdate, updateBall);
   lastUpdate = elapsed;
   draw();
 
