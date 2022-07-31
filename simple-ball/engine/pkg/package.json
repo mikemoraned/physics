@@ -1,0 +1,12 @@
+{
+  "name": "simple-ball-engine",
+  "version": "0.1.0",
+  "files": [
+    "simple_ball_engine_bg.wasm",
+    "simple_ball_engine.js",
+    "simple_ball_engine.d.ts"
+  ],
+  "module": "simple_ball_engine.js",
+  "types": "simple_ball_engine.d.ts",
+  "sideEffects": false
+}
