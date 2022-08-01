@@ -44,14 +44,20 @@ async function app() {
   var force_y = 0.1;
   var apply_force = false;
   const force_scale = 0.2;
+  const force_max = 0.5;
+  function clampForce(force) {
+    return Math.sign(force) * Math.min(force_max, Math.abs(force));
+  }
   const decideForceFn = (event) => {
     const rect = canvas.getBoundingClientRect();
     const canvas_x = event.clientX - rect.left;
     const canvas_x_proportion = canvas_x / maxX;
     const canvas_y = event.clientY - rect.top;
     const canvas_y_proportion = canvas_y / maxY;
-    force_x = (canvas_x_proportion * 2.0 - 1.0) * force_scale;
-    force_y = -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale;
+    force_x = clampForce((canvas_x_proportion * 2.0 - 1.0) * force_scale);
+    force_y = clampForce(
+      -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale
+    );
     console.log("decide force", force_x, force_y);
   };
   canvas.addEventListener("pointerdown", (event) => {
@@ -71,6 +77,16 @@ async function app() {
     context.beginPath();
     context.arc(ball.x, ball.y, ballRadius, 0, 2 * Math.PI);
     context.fill();
+
+    context.beginPath();
+    const halfMaxX = maxX / 2.0;
+    const halfMaxY = maxY / 2.0;
+    context.moveTo(halfMaxX, halfMaxY);
+    context.lineTo(
+      halfMaxX + (force_x / force_max) * halfMaxX,
+      halfMaxY + ((-1.0 * force_y) / force_max) * halfMaxY
+    );
+    context.stroke();
   }
 
   var start = undefined;
