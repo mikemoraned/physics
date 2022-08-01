@@ -86,6 +86,13 @@ async function app() {
       halfMaxX + (force_x / force_max) * halfMaxX,
       halfMaxY + ((-1.0 * force_y) / force_max) * halfMaxY
     );
+    context.lineWidth = 5;
+    context.lineCap = "round";
+    if (apply_force) {
+      context.strokeStyle = "red";
+    } else {
+      context.strokeStyle = "green";
+    }
     context.stroke();
   }
 
