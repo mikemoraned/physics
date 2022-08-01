@@ -7,6 +7,29 @@ async function app() {
   await init();
   console.log("init done");
 
+  if (window.DeviceMotionEvent) {
+    console.log("supports DeviceMotionEvent");
+    if (DeviceMotionEvent.requestPermission) {
+      console.log("must request permission for DeviceMotionEvent");
+      DeviceMotionEvent.requestPermission().then((response) => {
+        if (response == "granted") {
+          window.addEventListener("devicemotion", (event) => {
+            console.dir(event);
+          });
+        } else {
+          console.log("must request permission for DeviceMotionEvent");
+        }
+      });
+    } else {
+      console.log("no permission required for DeviceMotionEvent");
+      window.addEventListener("devicemotion", (event) => {
+        console.dir(event);
+      });
+    }
+  } else {
+    console.log("does not support DeviceMotionEvent");
+  }
+
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
 
@@ -59,17 +82,17 @@ async function app() {
     force_y = clampForce(
       -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale
     );
-    console.log("decide force", force_x, force_y);
+    // console.log("decide force", force_x, force_y);
   };
   canvas.addEventListener("pointerdown", (event) => {
     decideForceFn(event);
-    console.log("start applying force");
+    // console.log("start applying force");
     apply_force = true;
   });
   canvas.addEventListener("pointermove", decideForceFn);
   canvas.addEventListener("pointerup", (event) => {
     event.preventDefault();
-    console.log("stop applying force");
+    // console.log("stop applying force");
     apply_force = false;
   });
 
@@ -108,7 +131,7 @@ async function app() {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
       if (apply_force) {
-        console.log("apply force", force_x, force_y);
+        // console.log("apply force", force_x, force_y);
         sim.set_force(force_x, force_y);
       } else {
         sim.set_force(0.0, 0.0);
