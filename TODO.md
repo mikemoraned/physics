@@ -13,5 +13,5 @@ TODOs:
   - runs for some number of iterations as part of update loop
   - simulates no items
   - shows nothing
-- (x) simple sim of ball falling due to gravity, with 2d position of ball showing
+- (/) simple sim of ball falling due to gravity, with 2d position of ball showing
 - ...

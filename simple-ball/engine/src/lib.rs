@@ -33,6 +33,7 @@ struct RapierState {
     impulse_joint_set:  ImpulseJointSet,
     multibody_joint_set:  MultibodyJointSet,
     ccd_solver:  CCDSolver,
+    ball_body_handle: RigidBodyHandle,
 }
 
 #[wasm_bindgen]
@@ -40,11 +41,28 @@ impl RapierState {
     fn new() -> RapierState {
         console_log!("Creating RapierState");
 
-        let rigid_body_set = RigidBodySet::new();
-        let collider_set = ColliderSet::new();
+        let mut rigid_body_set = RigidBodySet::new();
+        let mut collider_set = ColliderSet::new();
 
+        /* Create the ground. */
+        let collider = ColliderBuilder::cuboid(100.0, 0.1).build();
+        collider_set.insert(collider);
+
+        /* Create the bouncing ball. */
+        let rigid_body = RigidBodyBuilder::dynamic()
+                .translation(vector![0.0, 10.0])
+                .build();
+        let collider = ColliderBuilder::ball(0.5).restitution(0.7).build();
+        let ball_body_handle = rigid_body_set.insert(rigid_body);
+        collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
+
+        /* Create other structures necessary for the simulation. */
         let gravity = vector![0.0, -9.81];
-        let integration_parameters = IntegrationParameters::default();
+        // let integration_parameters = IntegrationParameters::default();
+        let integration_parameters = IntegrationParameters { 
+            dt: 1.0 / 1000.0, 
+            ..Default::default()
+        };
         let physics_pipeline = PhysicsPipeline::new();
         let island_manager = IslandManager::new();
         let broad_phase = BroadPhase::new();
@@ -64,8 +82,14 @@ impl RapierState {
             narrow_phase,
             impulse_joint_set,
             multibody_joint_set,
-            ccd_solver
+            ccd_solver,
+            ball_body_handle
         }
+    }
+
+    fn ball_position(&self) -> &Vector<Real> {
+        let ball_body = &self.rigid_body_set[self.ball_body_handle];
+        ball_body.translation()
     }
 
     fn step(&mut self, steps: u32) {
@@ -104,24 +128,31 @@ impl Engine {
 
     pub fn update(&mut self, elapsed_since_last_update: u32, x: u32, y: u32, update_fn: &js_sys::Function) { 
         self.state.step(elapsed_since_last_update);
+        let ball_position = self.state.ball_position();
+        console_log!("Ball position: {}", ball_position);
 
-        let speed = 0.3f64; // pixels per millisecond
-        let distance = speed * (elapsed_since_last_update as f64);
-        console_log!("e: {}, speed: {}, distance: {}", elapsed_since_last_update, speed, distance);
-        let angle = 2.0 * PI * random();
-        let x_change = (angle.cos() * distance) as i32;
-        let y_change = (angle.sin() * distance) as i32;
+        let new_x = x;
+        let new_y = 600 - ((ball_position.y / 20.0) * 600.0) as u32;
+        console_log!("x: {} -> {}", x, new_x);
+        console_log!("y: {} -> {}", y, new_y);
 
-        console_log!("e: {}, angle: {}, x_change: {}, y_change: {}", 
-            elapsed_since_last_update,
-            angle,
-            x_change,
-            y_change);
+        // let speed = 0.3f64; // pixels per millisecond
+        // let distance = speed * (elapsed_since_last_update as f64);
+        // console_log!("e: {}, speed: {}, distance: {}", elapsed_since_last_update, speed, distance);
+        // let angle = 2.0 * PI * random();
+        // let x_change = (angle.cos() * distance) as i32;
+        // let y_change = (angle.sin() * distance) as i32;
 
-        let new_x = (x as i32 + x_change) as u32;
-        let new_y = (y as i32 + y_change) as u32;
-        console_log!("x: {} + {} = {}", x, x_change, new_x);
-        console_log!("y: {} + {} = {}", y, y_change, new_y);
+        // console_log!("e: {}, angle: {}, x_change: {}, y_change: {}", 
+        //     elapsed_since_last_update,
+        //     angle,
+        //     x_change,
+        //     y_change);
+
+        // let new_x = (x as i32 + x_change) as u32;
+        // let new_y = (y as i32 + y_change) as u32;
+        // console_log!("x: {} + {} = {}", x, x_change, new_x);
+        // console_log!("y: {} + {} = {}", y, y_change, new_y);
 
         let this = JsValue::null();
         let _ = update_fn.call2(&this, 
