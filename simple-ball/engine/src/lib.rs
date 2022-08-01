@@ -118,7 +118,7 @@ impl RapierState {
             );
         }
 
-        console_log!("completed {} steps", steps);
+        // console_log!("completed {} steps", steps);
     }
 }
 
@@ -138,7 +138,7 @@ impl Simulation {
     pub fn update(&mut self, elapsed_since_last_update: u32, update_fn: &js_sys::Function) { 
         self.state.step(elapsed_since_last_update);
         let ball_position = self.state.ball_position();
-        console_log!("Ball position: {}", ball_position);
+        // console_log!("Ball position: {}", ball_position);
 
         let this = JsValue::null();
         let _ = update_fn.call2(&this, 

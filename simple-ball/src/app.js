@@ -40,6 +40,18 @@ async function app() {
     ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
   }
 
+  const force_x = 0.0;
+  const force_y = 0.1;
+  var apply_force = false;
+  canvas.addEventListener("mousedown", () => {
+    console.log("mousedown");
+    apply_force = true;
+  });
+  canvas.addEventListener("mouseup", () => {
+    console.log("mouseup");
+    apply_force = false;
+  });
+
   function draw() {
     context.clearRect(0, 0, maxX, maxY);
 
@@ -55,14 +67,13 @@ async function app() {
       start = timestamp;
       lastUpdate = 0;
     } else {
-      const forceScale = 0.1;
-      sim.set_force(
-        (2.0 * Math.random() - 1.0) * forceScale,
-        (2.0 * Math.random() - 1.0) * forceScale
-      );
-
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
+      if (apply_force) {
+        sim.set_force(force_x, force_y);
+      } else {
+        sim.set_force(0.0, 0.0);
+      }
       sim.update(elapsedSinceLastUpdate, updateBall);
       lastUpdate = elapsed;
     }
