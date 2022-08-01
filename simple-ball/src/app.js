@@ -14,51 +14,56 @@ async function app() {
     document.getElementById("motion_gamma").innerText = gamma.toFixed(0);
     console.dir(event);
   };
-  if (window.DeviceMotionEvent) {
-    console.log("supports DeviceMotionEvent");
-    if (DeviceMotionEvent.requestPermission) {
-      console.log("must request permission for DeviceMotionEvent");
-      DeviceMotionEvent.requestPermission().then((response) => {
-        if (response == "granted") {
-          window.addEventListener("devicemotion", deviceMotionListener);
-        } else {
-          console.log("no permission for DeviceMotionEvent");
-        }
-      });
+  function enableDeviceMotion() {
+    if (window.DeviceMotionEvent) {
+      console.log("supports DeviceMotionEvent");
+      if (DeviceMotionEvent.requestPermission) {
+        console.log("must request permission for DeviceMotionEvent");
+        DeviceMotionEvent.requestPermission().then((response) => {
+          if (response == "granted") {
+            window.addEventListener("devicemotion", deviceMotionListener);
+          } else {
+            console.log("no permission for DeviceMotionEvent");
+          }
+        });
+      } else {
+        console.log("no permission required for DeviceMotionEvent");
+        window.addEventListener("devicemotion", deviceMotionListener);
+      }
     } else {
-      console.log("no permission required for DeviceMotionEvent");
-      window.addEventListener("devicemotion", deviceMotionListener);
+      console.log("does not support DeviceMotionEvent");
     }
-  } else {
-    console.log("does not support DeviceMotionEvent");
   }
-  const deviceOrientationListener = (event) => {
-    const { alpha, beta, gamma } = event;
-    document.getElementById("orientation_alpha").innerText = alpha.toFixed(0);
-    document.getElementById("orientation_beta").innerText = beta.toFixed(0);
-    document.getElementById("orientation_gamma").innerText = gamma.toFixed(0);
-    console.dir(event);
-  };
-  if (window.DeviceOrientationEvent) {
-    console.log("supports DeviceOrientationEvent");
-    if (DeviceOrientationEvent.requestPermission) {
-      console.log("must request permission for DeviceOrientationEvent");
-      DeviceOrientationEvent.requestPermission().then((response) => {
-        if (response == "granted") {
-          window.addEventListener(
-            "deviceorientation",
-            deviceOrientationListener
-          );
-        } else {
-          console.log("no permission for DeviceOrientationEvent");
-        }
-      });
-    } else {
-      console.log("no permission required for DeviceOrientationEvent");
+  function enableDeviceOrientation() {
+    const deviceOrientationListener = (event) => {
+      const { alpha, beta, gamma } = event;
+      document.getElementById("orientation_alpha").innerText = alpha.toFixed(0);
+      document.getElementById("orientation_beta").innerText = beta.toFixed(0);
+      document.getElementById("orientation_gamma").innerText = gamma.toFixed(0);
+      console.dir(event);
+    };
+    if (window.DeviceOrientationEvent) {
+      console.log("supports DeviceOrientationEvent");
+      if (DeviceOrientationEvent.requestPermission) {
+        console.log("must request permission for DeviceOrientationEvent");
+        DeviceOrientationEvent.requestPermission().then((response) => {
+          if (response == "granted") {
+            window.addEventListener(
+              "deviceorientation",
+              deviceOrientationListener
+            );
+          } else {
+            console.log("no permission for DeviceOrientationEvent");
+          }
+        });
+      } else {
+        console.log("no permission required for DeviceOrientationEvent");
+        window.addEventListener("deviceorientation", deviceOrientationListener);
+      }
       window.addEventListener("deviceorientation", deviceOrientationListener);
     }
-    window.addEventListener("deviceorientation", deviceOrientationListener);
   }
+  document.getElementById("enable").onclick = enableDeviceMotion;
 
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
