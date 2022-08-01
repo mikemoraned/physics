@@ -15,6 +15,6 @@ TODOs:
   - shows nothing
 - (/) simple sim of ball falling due to gravity, with 2d position of ball showing
 - (/) allow velocity force to be applied to the ball
-- (x) some visualisation of applied force
+- (/) some visualisation of applied force
 - (x) base velocity force on orientation of device (i.e. based on gravity as felt by device)
 - ...

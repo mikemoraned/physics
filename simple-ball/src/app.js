@@ -49,6 +49,7 @@ async function app() {
     return Math.sign(force) * Math.min(force_max, Math.abs(force));
   }
   const decideForceFn = (event) => {
+    event.preventDefault();
     const rect = canvas.getBoundingClientRect();
     const canvas_x = event.clientX - rect.left;
     const canvas_x_proportion = canvas_x / maxX;
@@ -66,7 +67,8 @@ async function app() {
     apply_force = true;
   });
   canvas.addEventListener("pointermove", decideForceFn);
-  canvas.addEventListener("pointerup", () => {
+  canvas.addEventListener("pointerup", (event) => {
+    event.preventDefault();
     console.log("stop applying force");
     apply_force = false;
   });
