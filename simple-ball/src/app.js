@@ -7,24 +7,27 @@ async function app() {
   await init();
   console.log("init done");
 
+  const deviceMotionListener = (event) => {
+    const { alpha, beta, gamma } = event;
+    document.getElementById("alpha").innerText = alpha.toFixed(0);
+    document.getElementById("beta").innerText = beta.toFixed(0);
+    document.getElementById("gamma").innerText = gamma.toFixed(0);
+    console.dir(event);
+  };
   if (window.DeviceMotionEvent) {
     console.log("supports DeviceMotionEvent");
     if (DeviceMotionEvent.requestPermission) {
       console.log("must request permission for DeviceMotionEvent");
       DeviceMotionEvent.requestPermission().then((response) => {
         if (response == "granted") {
-          window.addEventListener("devicemotion", (event) => {
-            console.dir(event);
-          });
+          window.addEventListener("devicemotion", deviceMotionListener);
         } else {
           console.log("must request permission for DeviceMotionEvent");
         }
       });
     } else {
       console.log("no permission required for DeviceMotionEvent");
-      window.addEventListener("devicemotion", (event) => {
-        console.dir(event);
-      });
+      window.addEventListener("devicemotion", deviceMotionListener);
     }
   } else {
     console.log("does not support DeviceMotionEvent");
