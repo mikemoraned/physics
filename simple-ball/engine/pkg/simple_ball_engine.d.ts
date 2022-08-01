@@ -1,18 +1,28 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
+*/
+export class Engine {
+  free(): void;
+/**
+*/
+  constructor();
+/**
 * @param {number} elapsed_since_last_update
 * @param {number} x
 * @param {number} y
 * @param {Function} update_fn
 */
-export function update(elapsed_since_last_update: number, x: number, y: number, update_fn: Function): void;
+  update(elapsed_since_last_update: number, x: number, y: number, update_fn: Function): void;
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly update: (a: number, b: number, c: number, d: number) => void;
+  readonly __wbg_engine_free: (a: number) => void;
+  readonly engine_new: () => number;
+  readonly engine_update: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
 

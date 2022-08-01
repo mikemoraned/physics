@@ -15,28 +15,39 @@ macro_rules! console_log {
 }
 
 #[wasm_bindgen]
-pub fn update(elapsed_since_last_update: u32, x: u32, y: u32, update_fn: &js_sys::Function) {
-    
-    let speed = 0.3f64; // pixels per millisecond
-    let distance = speed * (elapsed_since_last_update as f64);
-    console_log!("e: {}, speed: {}, distance: {}", elapsed_since_last_update, speed, distance);
-    let angle = 2.0 * PI * random();
-    let x_change = (angle.cos() * distance) as i32;
-    let y_change = (angle.sin() * distance) as i32;
+pub struct Engine {
+}
 
-    console_log!("e: {}, angle: {}, x_change: {}, y_change: {}", 
-        elapsed_since_last_update,
-        angle,
-        x_change,
-        y_change);
+#[wasm_bindgen]
+impl Engine {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> Engine {
+        console_log!("Creating Engine");
+        Engine {  }
+    }
 
-    let new_x = (x as i32 + x_change) as u32;
-    let new_y = (y as i32 + y_change) as u32;
-    console_log!("x: {} + {} = {}", x, x_change, new_x);
-    console_log!("y: {} + {} = {}", y, y_change, new_y);
+    pub fn update(&self, elapsed_since_last_update: u32, x: u32, y: u32, update_fn: &js_sys::Function) {        
+        let speed = 0.3f64; // pixels per millisecond
+        let distance = speed * (elapsed_since_last_update as f64);
+        console_log!("e: {}, speed: {}, distance: {}", elapsed_since_last_update, speed, distance);
+        let angle = 2.0 * PI * random();
+        let x_change = (angle.cos() * distance) as i32;
+        let y_change = (angle.sin() * distance) as i32;
 
-    let this = JsValue::null();
-    let _ = update_fn.call2(&this, 
-        &JsValue::from(new_x), 
-        &JsValue::from(new_y));
+        console_log!("e: {}, angle: {}, x_change: {}, y_change: {}", 
+            elapsed_since_last_update,
+            angle,
+            x_change,
+            y_change);
+
+        let new_x = (x as i32 + x_change) as u32;
+        let new_y = (y as i32 + y_change) as u32;
+        console_log!("x: {} + {} = {}", x, x_change, new_x);
+        console_log!("y: {} + {} = {}", y, y_change, new_y);
+
+        let this = JsValue::null();
+        let _ = update_fn.call2(&this, 
+            &JsValue::from(new_x), 
+            &JsValue::from(new_y));
+    }   
 }

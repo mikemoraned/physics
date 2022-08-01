@@ -54,19 +54,6 @@ function addBorrowedObject(obj) {
     heap[--stack_pointer] = obj;
     return stack_pointer;
 }
-/**
-* @param {number} elapsed_since_last_update
-* @param {number} x
-* @param {number} y
-* @param {Function} update_fn
-*/
-export function update(elapsed_since_last_update, x, y, update_fn) {
-    try {
-        wasm.update(elapsed_since_last_update, x, y, addBorrowedObject(update_fn));
-    } finally {
-        heap[stack_pointer++] = undefined;
-    }
-}
 
 function handleError(f, args) {
     try {
@@ -77,6 +64,48 @@ function handleError(f, args) {
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
+/**
+*/
+export class Engine {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Engine.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_engine_free(ptr);
+    }
+    /**
+    */
+    constructor() {
+        const ret = wasm.engine_new();
+        return Engine.__wrap(ret);
+    }
+    /**
+    * @param {number} elapsed_since_last_update
+    * @param {number} x
+    * @param {number} y
+    * @param {Function} update_fn
+    */
+    update(elapsed_since_last_update, x, y, update_fn) {
+        try {
+            wasm.engine_update(this.ptr, elapsed_since_last_update, x, y, addBorrowedObject(update_fn));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
+    }
+}
 
 async function load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {

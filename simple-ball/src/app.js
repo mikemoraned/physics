@@ -1,4 +1,4 @@
-import init, { update } from "../engine/pkg/simple_ball_engine.js";
+import init, { Engine } from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
@@ -42,6 +42,8 @@ async function app() {
   //     updateFn(ball.x + xChange, ball.y + yChange);
   //   }
 
+  const engine = new Engine();
+
   function draw() {
     context.clearRect(0, 0, maxX, maxY);
 
@@ -59,7 +61,7 @@ async function app() {
     } else {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
-      update(elapsedSinceLastUpdate, ball.x, ball.y, updateBall);
+      engine.update(elapsedSinceLastUpdate, ball.x, ball.y, updateBall);
       lastUpdate = elapsed;
     }
     draw();
