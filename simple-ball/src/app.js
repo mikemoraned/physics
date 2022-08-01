@@ -43,12 +43,12 @@ async function app() {
   const force_x = 0.0;
   const force_y = 0.1;
   var apply_force = false;
-  canvas.addEventListener("mousedown", () => {
-    console.log("mousedown");
+  canvas.addEventListener("pointerdown", () => {
+    console.log("apply force");
     apply_force = true;
   });
-  canvas.addEventListener("mouseup", () => {
-    console.log("mouseup");
+  canvas.addEventListener("pointerup", () => {
+    console.log("stop applying force");
     apply_force = false;
   });
 
