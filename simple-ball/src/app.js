@@ -1,4 +1,4 @@
-import init, { Engine } from "../engine/pkg/simple_ball_engine.js";
+import init, { Simulation } from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
@@ -10,10 +10,11 @@ async function app() {
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
 
-  const maxX = canvas.width;
-  const maxY = canvas.height;
+  const maxX = canvas.width - 1;
+  const maxY = canvas.height - 1;
 
-  const ballRadius = 0.05 * Math.min(maxX, maxY);
+  const minDimension = Math.min(maxX, maxY);
+  const ballRadius = 0.05 * minDimension;
   const ball = {
     x: 0.5 * maxX,
     y: 0.5 * maxY,
@@ -27,22 +28,17 @@ async function app() {
     return Math.min(Math.max(0, y), maxY - ballRadius);
   }
 
-  function updateBall(x, y) {
-    ball.x = clampX(x);
-    ball.y = clampY(y);
+  // Simulation area is a 100x100 box, which we map to our maxX, maxY
+  // area. We place a single ball.
+  const sim = new Simulation(50.0, 50.0, ballRadius / minDimension);
+  const simWidth = 100.0;
+  const simHeight = 100.0;
+  const scaleX = maxX / simWidth;
+  const scaleY = maxY / simHeight;
+  function updateBall(sim_x, sim_y) {
+    ball.x = clampX(sim_x * scaleX);
+    ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
   }
-
-  //   function update(elapsedSinceLastUpdate, updateFn) {
-  //     const speed = 0.3; // pixels per millisecond
-  //     const distance = speed * elapsedSinceLastUpdate;
-  //     const angle = 2 * Math.PI * Math.random();
-  //     const xChange = Math.cos(angle) * distance;
-  //     const yChange = Math.sin(angle) * distance;
-
-  //     updateFn(ball.x + xChange, ball.y + yChange);
-  //   }
-
-  const engine = new Engine();
 
   function draw() {
     context.clearRect(0, 0, maxX, maxY);
@@ -61,7 +57,7 @@ async function app() {
     } else {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
-      engine.update(elapsedSinceLastUpdate, ball.x, ball.y, updateBall);
+      sim.update(elapsedSinceLastUpdate, updateBall);
       lastUpdate = elapsed;
     }
     draw();

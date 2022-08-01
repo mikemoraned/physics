@@ -2,33 +2,34 @@
 /* eslint-disable */
 /**
 */
-export class Engine {
+export class RapierState {
   free(): void;
-/**
-*/
-  constructor();
-/**
-* @param {number} elapsed_since_last_update
-* @param {number} x
-* @param {number} y
-* @param {Function} update_fn
-*/
-  update(elapsed_since_last_update: number, x: number, y: number, update_fn: Function): void;
 }
 /**
 */
-export class RapierState {
+export class Simulation {
   free(): void;
+/**
+* @param {number} ball_x
+* @param {number} ball_y
+* @param {number} ball_radius
+*/
+  constructor(ball_x: number, ball_y: number, ball_radius: number);
+/**
+* @param {number} elapsed_since_last_update
+* @param {Function} update_fn
+*/
+  update(elapsed_since_last_update: number, update_fn: Function): void;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_engine_free: (a: number) => void;
+  readonly __wbg_simulation_free: (a: number) => void;
   readonly __wbg_rapierstate_free: (a: number) => void;
-  readonly engine_new: () => number;
-  readonly engine_update: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly simulation_new: (a: number, b: number, c: number) => number;
+  readonly simulation_update: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
 

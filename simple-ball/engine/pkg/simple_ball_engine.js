@@ -64,10 +64,26 @@ function handleError(f, args) {
 }
 /**
 */
-export class Engine {
+export class RapierState {
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_rapierstate_free(ptr);
+    }
+}
+/**
+*/
+export class Simulation {
 
     static __wrap(ptr) {
-        const obj = Object.create(Engine.prototype);
+        const obj = Object.create(Simulation.prototype);
         obj.ptr = ptr;
 
         return obj;
@@ -82,42 +98,27 @@ export class Engine {
 
     free() {
         const ptr = this.__destroy_into_raw();
-        wasm.__wbg_engine_free(ptr);
+        wasm.__wbg_simulation_free(ptr);
     }
     /**
+    * @param {number} ball_x
+    * @param {number} ball_y
+    * @param {number} ball_radius
     */
-    constructor() {
-        const ret = wasm.engine_new();
-        return Engine.__wrap(ret);
+    constructor(ball_x, ball_y, ball_radius) {
+        const ret = wasm.simulation_new(ball_x, ball_y, ball_radius);
+        return Simulation.__wrap(ret);
     }
     /**
     * @param {number} elapsed_since_last_update
-    * @param {number} x
-    * @param {number} y
     * @param {Function} update_fn
     */
-    update(elapsed_since_last_update, x, y, update_fn) {
+    update(elapsed_since_last_update, update_fn) {
         try {
-            wasm.engine_update(this.ptr, elapsed_since_last_update, x, y, addBorrowedObject(update_fn));
+            wasm.simulation_update(this.ptr, elapsed_since_last_update, addBorrowedObject(update_fn));
         } finally {
             heap[stack_pointer++] = undefined;
         }
-    }
-}
-/**
-*/
-export class RapierState {
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_rapierstate_free(ptr);
     }
 }
 

@@ -1,6 +1,4 @@
 use wasm_bindgen::prelude::*;
-use js_sys::Math::random;
-use std::f64::consts::PI;
 use rapier2d::prelude::*;
 
 #[wasm_bindgen]
@@ -16,7 +14,7 @@ macro_rules! console_log {
 }
 
 #[wasm_bindgen]
-pub struct Engine {
+pub struct Simulation {
     state: RapierState
 }
 
@@ -38,7 +36,7 @@ struct RapierState {
 
 #[wasm_bindgen]
 impl RapierState {
-    fn new() -> RapierState {
+    fn new(ball_x: f32, ball_y: f32, ball_radius: f32) -> RapierState {
         console_log!("Creating RapierState");
 
         let mut rigid_body_set = RigidBodySet::new();
@@ -50,9 +48,9 @@ impl RapierState {
 
         /* Create the bouncing ball. */
         let rigid_body = RigidBodyBuilder::dynamic()
-                .translation(vector![0.0, 10.0])
+                .translation(vector![ball_x, ball_y])
                 .build();
-        let collider = ColliderBuilder::ball(0.5).restitution(0.7).build();
+        let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
         let ball_body_handle = rigid_body_set.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
 
@@ -118,45 +116,22 @@ impl RapierState {
 }
 
 #[wasm_bindgen]
-impl Engine {
+impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Engine {
-        console_log!("Creating Engine");
-        let state = RapierState::new();
-        Engine { state }
+    pub fn new(ball_x: f32, ball_y: f32, ball_radius: f32) -> Simulation {
+        console_log!("Creating Simulation, with ball at {}, {} with radius {}", ball_x, ball_y, ball_radius);
+        let state = RapierState::new(ball_x, ball_y, ball_radius);
+        Simulation { state }
     }
 
-    pub fn update(&mut self, elapsed_since_last_update: u32, x: u32, y: u32, update_fn: &js_sys::Function) { 
+    pub fn update(&mut self, elapsed_since_last_update: u32, update_fn: &js_sys::Function) { 
         self.state.step(elapsed_since_last_update);
         let ball_position = self.state.ball_position();
         console_log!("Ball position: {}", ball_position);
 
-        let new_x = x;
-        let new_y = 600 - ((ball_position.y / 20.0) * 600.0) as u32;
-        console_log!("x: {} -> {}", x, new_x);
-        console_log!("y: {} -> {}", y, new_y);
-
-        // let speed = 0.3f64; // pixels per millisecond
-        // let distance = speed * (elapsed_since_last_update as f64);
-        // console_log!("e: {}, speed: {}, distance: {}", elapsed_since_last_update, speed, distance);
-        // let angle = 2.0 * PI * random();
-        // let x_change = (angle.cos() * distance) as i32;
-        // let y_change = (angle.sin() * distance) as i32;
-
-        // console_log!("e: {}, angle: {}, x_change: {}, y_change: {}", 
-        //     elapsed_since_last_update,
-        //     angle,
-        //     x_change,
-        //     y_change);
-
-        // let new_x = (x as i32 + x_change) as u32;
-        // let new_y = (y as i32 + y_change) as u32;
-        // console_log!("x: {} + {} = {}", x, x_change, new_x);
-        // console_log!("y: {} + {} = {}", y, y_change, new_y);
-
         let this = JsValue::null();
         let _ = update_fn.call2(&this, 
-            &JsValue::from(new_x), 
-            &JsValue::from(new_y));
+            &JsValue::from(ball_position.x), 
+            &JsValue::from(ball_position.y));
     }   
 }
