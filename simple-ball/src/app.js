@@ -22,7 +22,7 @@ async function app() {
         if (response == "granted") {
           window.addEventListener("devicemotion", deviceMotionListener);
         } else {
-          console.log("must request permission for DeviceMotionEvent");
+          console.log("no permission for DeviceMotionEvent");
         }
       });
     } else {
@@ -41,6 +41,22 @@ async function app() {
   };
   if (window.DeviceOrientationEvent) {
     console.log("supports DeviceOrientationEvent");
+    if (DeviceOrientationEvent.requestPermission) {
+      console.log("must request permission for DeviceOrientationEvent");
+      DeviceOrientationEvent.requestPermission().then((response) => {
+        if (response == "granted") {
+          window.addEventListener(
+            "deviceorientation",
+            deviceOrientationListener
+          );
+        } else {
+          console.log("no permission for DeviceOrientationEvent");
+        }
+      });
+    } else {
+      console.log("no permission required for DeviceOrientationEvent");
+      window.addEventListener("deviceorientation", deviceOrientationListener);
+    }
     window.addEventListener("deviceorientation", deviceOrientationListener);
   }
 
