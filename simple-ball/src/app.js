@@ -40,13 +40,26 @@ async function app() {
     ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
   }
 
-  const force_x = 0.0;
-  const force_y = 0.1;
+  var force_x = 0.0;
+  var force_y = 0.1;
   var apply_force = false;
-  canvas.addEventListener("pointerdown", () => {
-    console.log("apply force");
+  const force_scale = 0.2;
+  const decideForceFn = (event) => {
+    const rect = canvas.getBoundingClientRect();
+    const canvas_x = event.clientX - rect.left;
+    const canvas_x_proportion = canvas_x / maxX;
+    const canvas_y = event.clientY - rect.top;
+    const canvas_y_proportion = canvas_y / maxY;
+    force_x = (canvas_x_proportion * 2.0 - 1.0) * force_scale;
+    force_y = -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale;
+    console.log("decide force", force_x, force_y);
+  };
+  canvas.addEventListener("pointerdown", (event) => {
+    decideForceFn(event);
+    console.log("start applying force");
     apply_force = true;
   });
+  canvas.addEventListener("pointermove", decideForceFn);
   canvas.addEventListener("pointerup", () => {
     console.log("stop applying force");
     apply_force = false;
@@ -70,6 +83,7 @@ async function app() {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
       if (apply_force) {
+        console.log("apply force", force_x, force_y);
         sim.set_force(force_x, force_y);
       } else {
         sim.set_force(0.0, 0.0);
