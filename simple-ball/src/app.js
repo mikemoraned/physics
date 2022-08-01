@@ -34,6 +34,27 @@ async function app() {
       console.log("does not support DeviceMotionEvent");
     }
   }
+  var reset = false;
+  var initial_beta = undefined;
+  var initial_gamma = undefined;
+  const forceFromDeviceOrientation = (event) => {
+    const { alpha, beta, gamma } = event;
+    if (!reset) {
+      reset = true;
+      initial_beta = beta;
+      initial_gamma = gamma;
+    } else {
+      const max_magnitude = 20;
+      function clampMagnitude(value) {
+        return Math.sign(value) * Math.min(max_magnitude, Math.abs(value));
+      }
+      const beta_diff = clampMagnitude(beta - initial_beta);
+      const gamma_diff = clampMagnitude(gamma - initial_gamma);
+      force_x = beta_diff / max_magnitude;
+      force_y = gamma_diff / max_magnitude;
+      apply_force = true;
+    }
+  };
   function enableDeviceOrientation() {
     const deviceOrientationListener = (event) => {
       const { alpha, beta, gamma } = event;
@@ -52,6 +73,10 @@ async function app() {
               "deviceorientation",
               deviceOrientationListener
             );
+            window.addEventListener(
+              "deviceorientation",
+              forceFromDeviceOrientation
+            );
           } else {
             console.log("no permission for DeviceOrientationEvent");
           }
@@ -59,6 +84,10 @@ async function app() {
       } else {
         console.log("no permission required for DeviceOrientationEvent");
         window.addEventListener("deviceorientation", deviceOrientationListener);
+        window.addEventListener(
+          "deviceorientation",
+          forceFromDeviceOrientation
+        );
       }
       window.addEventListener("deviceorientation", deviceOrientationListener);
     }
@@ -166,7 +195,7 @@ async function app() {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
       if (apply_force) {
-        // console.log("apply force", force_x, force_y);
+        console.log("apply force", force_x, force_y);
         sim.set_force(force_x, force_y);
       } else {
         sim.set_force(0.0, 0.0);
