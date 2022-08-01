@@ -9,9 +9,9 @@ async function app() {
 
   const deviceMotionListener = (event) => {
     const { alpha, beta, gamma } = event;
-    document.getElementById("alpha").innerText = alpha.toFixed(0);
-    document.getElementById("beta").innerText = beta.toFixed(0);
-    document.getElementById("gamma").innerText = gamma.toFixed(0);
+    document.getElementById("motion_alpha").innerText = alpha.toFixed(0);
+    document.getElementById("motion_beta").innerText = beta.toFixed(0);
+    document.getElementById("motion_gamma").innerText = gamma.toFixed(0);
     console.dir(event);
   };
   if (window.DeviceMotionEvent) {
@@ -31,6 +31,17 @@ async function app() {
     }
   } else {
     console.log("does not support DeviceMotionEvent");
+  }
+  const deviceOrientationListener = (event) => {
+    const { alpha, beta, gamma } = event;
+    document.getElementById("orientation_alpha").innerText = alpha.toFixed(0);
+    document.getElementById("orientation_beta").innerText = beta.toFixed(0);
+    document.getElementById("orientation_gamma").innerText = gamma.toFixed(0);
+    console.dir(event);
+  };
+  if (window.DeviceOrientationEvent) {
+    console.log("supports DeviceOrientationEvent");
+    window.addEventListener("deviceorientation", deviceOrientationListener);
   }
 
   const canvas = document.getElementById("canvas");
