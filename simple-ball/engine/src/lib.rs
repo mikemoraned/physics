@@ -85,6 +85,13 @@ impl RapierState {
         }
     }
 
+    pub fn set_ball_force(&mut self, x: f32, y: f32) { 
+        let ball_body = self.rigid_body_set.get_mut(self.ball_body_handle).unwrap();
+
+        ball_body.reset_forces(true);
+        ball_body.add_force(vector![x, y], true);
+    }
+
     fn ball_position(&self) -> &Vector<Real> {
         let ball_body = &self.rigid_body_set[self.ball_body_handle];
         ball_body.translation()
@@ -122,6 +129,10 @@ impl Simulation {
         console_log!("Creating Simulation, with ball at {}, {} with radius {}", ball_x, ball_y, ball_radius);
         let state = RapierState::new(ball_x, ball_y, ball_radius);
         Simulation { state }
+    }
+
+    pub fn set_force(&mut self, x: f32, y: f32) { 
+        self.state.set_ball_force(x, y);
     }
 
     pub fn update(&mut self, elapsed_since_last_update: u32, update_fn: &js_sys::Function) { 

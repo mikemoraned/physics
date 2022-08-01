@@ -77,6 +77,13 @@ export class RapierState {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_rapierstate_free(ptr);
     }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    set_ball_force(x, y) {
+        wasm.rapierstate_set_ball_force(this.ptr, x, y);
+    }
 }
 /**
 */
@@ -108,6 +115,13 @@ export class Simulation {
     constructor(ball_x, ball_y, ball_radius) {
         const ret = wasm.simulation_new(ball_x, ball_y, ball_radius);
         return Simulation.__wrap(ret);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    set_force(x, y) {
+        wasm.simulation_set_force(this.ptr, x, y);
     }
     /**
     * @param {number} elapsed_since_last_update

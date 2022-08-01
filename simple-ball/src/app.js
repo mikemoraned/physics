@@ -55,6 +55,12 @@ async function app() {
       start = timestamp;
       lastUpdate = 0;
     } else {
+      const forceScale = 0.1;
+      sim.set_force(
+        (2.0 * Math.random() - 1.0) * forceScale,
+        (2.0 * Math.random() - 1.0) * forceScale
+      );
+
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
       sim.update(elapsedSinceLastUpdate, updateBall);

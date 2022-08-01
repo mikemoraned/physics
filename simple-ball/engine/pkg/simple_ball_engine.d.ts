@@ -4,6 +4,11 @@
 */
 export class RapierState {
   free(): void;
+/**
+* @param {number} x
+* @param {number} y
+*/
+  set_ball_force(x: number, y: number): void;
 }
 /**
 */
@@ -15,6 +20,11 @@ export class Simulation {
 * @param {number} ball_radius
 */
   constructor(ball_x: number, ball_y: number, ball_radius: number);
+/**
+* @param {number} x
+* @param {number} y
+*/
+  set_force(x: number, y: number): void;
 /**
 * @param {number} elapsed_since_last_update
 * @param {Function} update_fn
@@ -28,7 +38,9 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_simulation_free: (a: number) => void;
   readonly __wbg_rapierstate_free: (a: number) => void;
+  readonly rapierstate_set_ball_force: (a: number, b: number, c: number) => void;
   readonly simulation_new: (a: number, b: number, c: number) => number;
+  readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly simulation_update: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
