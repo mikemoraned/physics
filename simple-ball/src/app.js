@@ -63,7 +63,7 @@ async function app() {
       window.addEventListener("deviceorientation", deviceOrientationListener);
     }
   }
-  document.getElementById("enable").onclick = enableDeviceMotion;
+  document.getElementById("enable").onclick = enableDeviceOrientation;
 
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
