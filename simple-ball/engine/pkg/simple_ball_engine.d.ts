@@ -15,12 +15,18 @@ export class Engine {
 */
   update(elapsed_since_last_update: number, x: number, y: number, update_fn: Function): void;
 }
+/**
+*/
+export class RapierState {
+  free(): void;
+}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly __wbg_engine_free: (a: number) => void;
+  readonly __wbg_rapierstate_free: (a: number) => void;
   readonly engine_new: () => number;
   readonly engine_update: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;

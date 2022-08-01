@@ -9,7 +9,7 @@ TODOs:
   - shows a random ball moving in a canvas
   - a clear update/draw separation
 - (/) move update logic into rust
-- (x) add very simple rapier 2d sim loop,
+- (/) add very simple rapier 2d sim loop,
   - runs for some number of iterations as part of update loop
   - simulates no items
   - shows nothing
