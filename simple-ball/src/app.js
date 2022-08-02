@@ -66,13 +66,13 @@ function bindPhysicalSensorModel() {
   return sensorModel;
 }
 
-function registerPhysicalForceSensor() {
+async function registerPhysicalForceSensor() {
   console.log("registering physical force sensor");
   if (window.DeviceOrientationEvent) {
     console.log("device supports DeviceOrientationEvent");
     if (DeviceOrientationEvent.requestPermission) {
       console.log("must request permission for DeviceOrientationEvent");
-      DeviceOrientationEvent.requestPermission().then((response) => {
+      return DeviceOrientationEvent.requestPermission().then((response) => {
         if (response == "granted") {
           return bindPhysicalSensorModel();
         } else {
@@ -82,11 +82,11 @@ function registerPhysicalForceSensor() {
       });
     } else {
       console.log("no permission required for DeviceOrientationEvent");
-      return bindPhysicalSensorModel();
+      return Promise.resolve(bindPhysicalSensorModel());
     }
   } else {
     console.log("device does not support DeviceOrientationEvent");
-    return null;
+    return Promise.resolve(null);
   }
 }
 
@@ -220,8 +220,8 @@ async function app() {
   }
 
   var sensorModel = registerCanvasForceSensor(canvas);
-  document.getElementById("enable").onclick = () => {
-    const physicalSensorModel = registerPhysicalForceSensor();
+  document.getElementById("enable").onclick = async () => {
+    const physicalSensorModel = await registerPhysicalForceSensor();
     if (physicalSensorModel !== null) {
       sensorModel = physicalSensorModel;
 
