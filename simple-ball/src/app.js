@@ -115,13 +115,41 @@ function registerCanvasForceSensor(canvas) {
   return sensorModel;
 }
 
+function draw(ball, ballRadius, sensorModel, canvas) {
+  const { width, height } = canvas;
+  const context = canvas.getContext("2d");
+
+  context.clearRect(0, 0, width, height);
+
+  context.beginPath();
+  context.arc(ball.x, ball.y, ballRadius, 0, 2 * Math.PI);
+  context.fill();
+
+  context.beginPath();
+  const halfMaxX = width / 2.0;
+  const halfMaxY = height / 2.0;
+  context.moveTo(halfMaxX, halfMaxY);
+  context.lineTo(
+    halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX,
+    halfMaxY + ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY
+  );
+  context.lineWidth = 5;
+  context.lineCap = "round";
+  if (sensorModel.force.apply) {
+    context.strokeStyle = "red";
+  } else {
+    context.strokeStyle = "green";
+  }
+  context.stroke();
+}
+
 async function app() {
   console.log("starting init ...");
   await init();
   console.log("init done");
 
   const canvas = document.getElementById("canvas");
-  const context = canvas.getContext("2d");
+  //   const context = canvas.getContext("2d");
 
   const maxX = canvas.width - 1;
   const maxY = canvas.height - 1;
@@ -161,32 +189,6 @@ async function app() {
     }
   };
 
-  function draw() {
-    context.clearRect(0, 0, maxX, maxY);
-
-    context.beginPath();
-    context.arc(ball.x, ball.y, ballRadius, 0, 2 * Math.PI);
-    context.fill();
-
-    context.beginPath();
-    const halfMaxX = maxX / 2.0;
-    const halfMaxY = maxY / 2.0;
-    context.moveTo(halfMaxX, halfMaxY);
-    context.lineTo(
-      halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX,
-      halfMaxY +
-        ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY
-    );
-    context.lineWidth = 5;
-    context.lineCap = "round";
-    if (sensorModel.force.apply) {
-      context.strokeStyle = "red";
-    } else {
-      context.strokeStyle = "green";
-    }
-    context.stroke();
-  }
-
   var start = undefined;
   var lastUpdate = undefined;
   function animate(timestamp) {
@@ -205,7 +207,7 @@ async function app() {
       sim.update(elapsedSinceLastUpdate, updateBall);
       lastUpdate = elapsed;
     }
-    draw();
+    draw(ball, ballRadius, sensorModel, canvas);
 
     window.requestAnimationFrame(animate);
   }
