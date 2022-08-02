@@ -9,8 +9,15 @@ function clampMagnitude(value, max) {
 function bindPhysicalSensorModel() {
   const sensorModel = {
     sensor_data: {
-      initial: undefined,
-      current: undefined,
+      initialised: false,
+      initial: {
+        beta: undefined,
+        gamma: undefined,
+      },
+      current: {
+        beta: undefined,
+        gamma: undefined,
+      },
     },
     force: {
       max: 1.0,
@@ -19,34 +26,41 @@ function bindPhysicalSensorModel() {
       apply: false,
     },
   };
+  sensorModel.sensor_data.reset = () => {
+    sensorModel.sensor_data.initialised = false;
+    sensorModel.sensor_data.initial = {
+      beta: undefined,
+      gamma: undefined,
+    };
+  };
   function listener(event) {
     const { beta, gamma } = event;
-    if (sensorModel.sensor_data.initial === undefined) {
+    if (!sensorModel.sensor_data.initialised) {
       sensorModel.sensor_data.initial = {
         beta,
         gamma,
       };
-    } else {
-      const max_magnitude = 20;
-      const beta_diff = clampMagnitude(
-        beta - sensorModel.sensor_data.initial.beta,
-        max_magnitude
-      );
-      const gamma_diff = clampMagnitude(
-        gamma - sensorModel.sensor_data.initial.gamma,
-        max_magnitude
-      );
-      sensorModel.sensor_data.current = {
-        beta,
-        gamma,
-      };
-      sensorModel.force = {
-        ...sensorModel.force,
-        x: beta_diff / max_magnitude,
-        y: gamma_diff / max_magnitude,
-        apply: true,
-      };
+      sensorModel.sensor_data.initialised = true;
     }
+    const max_magnitude = 20;
+    const beta_diff = clampMagnitude(
+      beta - sensorModel.sensor_data.initial.beta,
+      max_magnitude
+    );
+    const gamma_diff = clampMagnitude(
+      gamma - sensorModel.sensor_data.initial.gamma,
+      max_magnitude
+    );
+    sensorModel.sensor_data.current = {
+      beta,
+      gamma,
+    };
+    sensorModel.force = {
+      ...sensorModel.force,
+      x: beta_diff / max_magnitude,
+      y: gamma_diff / max_magnitude,
+      apply: true,
+    };
   }
   window.addEventListener("deviceorientation", listener);
   return sensorModel;
@@ -154,6 +168,18 @@ function draw(ball, ballRadius, sensorModel, canvas) {
   document.getElementById("force_x").innerText = `${sensorModel.force.x}`;
   document.getElementById("force_y").innerText = `${sensorModel.force.y}`;
   document.getElementById("force_max").innerText = `${sensorModel.force.max}`;
+
+  if (sensorModel.sensor_data && sensorModel.sensor_data.initialised) {
+    const data = sensorModel.sensor_data;
+    document.getElementById("initial_beta").innerText = `${data.initial.beta}`;
+    document.getElementById(
+      "initial_gamma"
+    ).innerText = `${data.initial.gamma}`;
+    document.getElementById("current_beta").innerText = `${data.current.beta}`;
+    document.getElementById(
+      "current_gamma"
+    ).innerText = `${data.current.gamma}`;
+  }
 }
 
 async function app() {
@@ -199,6 +225,9 @@ async function app() {
     if (physicalSensorModel !== null) {
       sensorModel = physicalSensorModel;
     }
+    const resetButton = document.getElementById("reset");
+    resetButton.onclick = sensorModel.sensor_data.reset;
+    resetButton.disabled = false;
   };
 
   var start = undefined;
