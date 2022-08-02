@@ -58,7 +58,7 @@ function bindPhysicalSensorModel() {
     sensorModel.force = {
       ...sensorModel.force,
       x: gamma_diff / max_magnitude,
-      y: beta_diff / max_magnitude,
+      y: -1.0 * (beta_diff / max_magnitude),
       apply: true,
     };
   }
