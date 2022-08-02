@@ -141,6 +141,13 @@ function draw(ball, ballRadius, sensorModel, canvas) {
     context.strokeStyle = "green";
   }
   context.stroke();
+
+  document.getElementById(
+    "force_apply"
+  ).innerText = `${sensorModel.force.apply}`;
+  document.getElementById("force_x").innerText = `${sensorModel.force.x}`;
+  document.getElementById("force_y").innerText = `${sensorModel.force.y}`;
+  document.getElementById("force_max").innerText = `${sensorModel.force.max}`;
 }
 
 async function app() {
