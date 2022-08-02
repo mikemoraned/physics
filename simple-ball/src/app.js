@@ -224,10 +224,11 @@ async function app() {
     const physicalSensorModel = registerPhysicalForceSensor();
     if (physicalSensorModel !== null) {
       sensorModel = physicalSensorModel;
+
+      const resetButton = document.getElementById("reset");
+      resetButton.onclick = sensorModel.sensor_data.reset;
+      resetButton.disabled = false;
     }
-    const resetButton = document.getElementById("reset");
-    resetButton.onclick = sensorModel.sensor_data.reset;
-    resetButton.disabled = false;
   };
 
   var start = undefined;
