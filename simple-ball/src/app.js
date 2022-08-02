@@ -72,14 +72,25 @@ async function registerPhysicalForceSensor() {
     console.log("device supports DeviceOrientationEvent");
     if (DeviceOrientationEvent.requestPermission) {
       console.log("must request permission for DeviceOrientationEvent");
-      return DeviceOrientationEvent.requestPermission().then((response) => {
-        if (response == "granted") {
-          return bindPhysicalSensorModel();
-        } else {
-          console.log("no permission for DeviceOrientationEvent");
-          return null;
-        }
-      });
+      return DeviceOrientationEvent.requestPermission()
+        .then((response) => {
+          if (response == "granted") {
+            return bindPhysicalSensorModel();
+          } else {
+            console.log(
+              "no permission for DeviceOrientationEvent, response: ",
+              response
+            );
+            return null;
+          }
+        })
+        .catch((error) => {
+          console.log(
+            "error whilst getting DeviceOrientationEvent permission:",
+            error
+          );
+          return Promise.resolve(null);
+        });
     } else {
       console.log("no permission required for DeviceOrientationEvent");
       return Promise.resolve(bindPhysicalSensorModel());
@@ -151,7 +162,7 @@ function draw(ball, ballRadius, sensorModel, canvas) {
   const y =
     center_y +
     ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * max_size_y;
-  console.log(sensorModel, x, y);
+  //   console.log(sensorModel, x, y);
   context.lineTo(x, y);
   context.lineWidth = 5;
   context.lineCap = "round";
@@ -241,7 +252,7 @@ async function app() {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
       if (sensorModel.force.apply) {
-        console.log("apply force", sensorModel.force.x, sensorModel.force.y);
+        // console.log("apply force", sensorModel.force.x, sensorModel.force.y);
         sim.set_force(sensorModel.force.x, sensorModel.force.y);
       } else {
         sim.set_force(0.0, 0.0);
