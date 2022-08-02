@@ -41,6 +41,7 @@ function bindPhysicalSensorModel() {
         gamma,
       };
       sensorModel.force = {
+        ...sensorModel.force,
         x: beta_diff / max_magnitude,
         y: gamma_diff / max_magnitude,
         apply: true,
@@ -129,10 +130,12 @@ function draw(ball, ballRadius, sensorModel, canvas) {
   const halfMaxX = width / 2.0;
   const halfMaxY = height / 2.0;
   context.moveTo(halfMaxX, halfMaxY);
-  context.lineTo(
-    halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX,
-    halfMaxY + ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY
-  );
+  const x = halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX;
+  const y =
+    halfMaxY +
+    ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY;
+  console.log(sensorModel, x, y);
+  context.lineTo(x, y);
   context.lineWidth = 5;
   context.lineCap = "round";
   if (sensorModel.force.apply) {
@@ -156,7 +159,6 @@ async function app() {
   console.log("init done");
 
   const canvas = document.getElementById("canvas");
-  //   const context = canvas.getContext("2d");
 
   const maxX = canvas.width - 1;
   const maxY = canvas.height - 1;
