@@ -127,13 +127,16 @@ function draw(ball, ballRadius, sensorModel, canvas) {
   context.fill();
 
   context.beginPath();
-  const halfMaxX = width / 2.0;
-  const halfMaxY = height / 2.0;
-  context.moveTo(halfMaxX, halfMaxY);
-  const x = halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX;
+  const max_size_x = (0.8 * width) / 2.0;
+  const max_size_y = (0.8 * height) / 2.0;
+  const center_x = width / 2.0;
+  const center_y = height / 2.0;
+  context.moveTo(center_x, center_y);
+  const x =
+    center_x + (sensorModel.force.x / sensorModel.force.max) * max_size_x;
   const y =
-    halfMaxY +
-    ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY;
+    center_y +
+    ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * max_size_y;
   console.log(sensorModel, x, y);
   context.lineTo(x, y);
   context.lineWidth = 5;
