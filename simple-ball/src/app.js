@@ -2,97 +2,123 @@ import init, { Simulation } from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
+function clampMagnitude(value, max) {
+  return Math.sign(value) * Math.min(max, Math.abs(value));
+}
+
+function bindPhysicalSensorModel() {
+  const sensorModel = {
+    sensor_data: {
+      initial: undefined,
+      current: undefined,
+    },
+    force: {
+      max: 1.0,
+      x: undefined,
+      y: undefined,
+      apply: false,
+    },
+  };
+  function listener(event) {
+    const { beta, gamma } = event;
+    if (sensorModel.sensor_data.initial === undefined) {
+      sensorModel.sensor_data.initial = {
+        beta,
+        gamma,
+      };
+    } else {
+      const max_magnitude = 20;
+      const beta_diff = clampMagnitude(
+        beta - sensorModel.sensor_data.initial.beta,
+        max_magnitude
+      );
+      const gamma_diff = clampMagnitude(
+        gamma - sensorModel.sensor_data.initial.gamma,
+        max_magnitude
+      );
+      sensorModel.sensor_data.current = {
+        beta,
+        gamma,
+      };
+      sensorModel.force = {
+        x: beta_diff / max_magnitude,
+        y: gamma_diff / max_magnitude,
+        apply: true,
+      };
+    }
+  }
+  window.addEventListener("deviceorientation", listener);
+  return sensorModel;
+}
+
+function registerPhysicalForceSensor() {
+  console.log("registering physical force sensor");
+  if (window.DeviceOrientationEvent) {
+    console.log("device supports DeviceOrientationEvent");
+    if (DeviceOrientationEvent.requestPermission) {
+      console.log("must request permission for DeviceOrientationEvent");
+      DeviceOrientationEvent.requestPermission().then((response) => {
+        if (response == "granted") {
+          return bindPhysicalSensorModel();
+        } else {
+          console.log("no permission for DeviceOrientationEvent");
+          return null;
+        }
+      });
+    } else {
+      console.log("no permission required for DeviceOrientationEvent");
+      return bindPhysicalSensorModel();
+    }
+  } else {
+    console.log("device does not support DeviceOrientationEvent");
+    return null;
+  }
+}
+
+function registerCanvasForceSensor(canvas) {
+  const sensorModel = {
+    force: {
+      max: 0.5,
+      x: undefined,
+      y: undefined,
+      apply: false,
+    },
+  };
+  const force_scale = 0.2;
+
+  const rect = canvas.getBoundingClientRect();
+
+  const decideForceFn = (event) => {
+    event.preventDefault();
+    const canvas_x = event.clientX - rect.left;
+    const canvas_x_proportion = canvas_x / canvas.width;
+    const canvas_y = event.clientY - rect.top;
+    const canvas_y_proportion = canvas_y / canvas.height;
+    sensorModel.force.x = clampMagnitude(
+      (canvas_x_proportion * 2.0 - 1.0) * force_scale,
+      sensorModel.force.max
+    );
+    sensorModel.force.y = clampMagnitude(
+      -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale,
+      sensorModel.force.max
+    );
+  };
+  canvas.addEventListener("pointerdown", (event) => {
+    decideForceFn(event);
+    sensorModel.force.apply = true;
+  });
+  canvas.addEventListener("pointermove", decideForceFn);
+  canvas.addEventListener("pointerup", (event) => {
+    event.preventDefault();
+    sensorModel.force.apply = false;
+  });
+  return sensorModel;
+}
+
 async function app() {
   console.log("starting init ...");
   await init();
   console.log("init done");
-
-  const deviceMotionListener = (event) => {
-    const { alpha, beta, gamma } = event;
-    document.getElementById("motion_alpha").innerText = alpha.toFixed(0);
-    document.getElementById("motion_beta").innerText = beta.toFixed(0);
-    document.getElementById("motion_gamma").innerText = gamma.toFixed(0);
-    console.dir(event);
-  };
-  function enableDeviceMotion() {
-    if (window.DeviceMotionEvent) {
-      console.log("supports DeviceMotionEvent");
-      if (DeviceMotionEvent.requestPermission) {
-        console.log("must request permission for DeviceMotionEvent");
-        DeviceMotionEvent.requestPermission().then((response) => {
-          if (response == "granted") {
-            window.addEventListener("devicemotion", deviceMotionListener);
-          } else {
-            console.log("no permission for DeviceMotionEvent");
-          }
-        });
-      } else {
-        console.log("no permission required for DeviceMotionEvent");
-        window.addEventListener("devicemotion", deviceMotionListener);
-      }
-    } else {
-      console.log("does not support DeviceMotionEvent");
-    }
-  }
-  var reset = false;
-  var initial_beta = undefined;
-  var initial_gamma = undefined;
-  const forceFromDeviceOrientation = (event) => {
-    const { alpha, beta, gamma } = event;
-    if (!reset) {
-      reset = true;
-      initial_beta = beta;
-      initial_gamma = gamma;
-    } else {
-      const max_magnitude = 20;
-      function clampMagnitude(value) {
-        return Math.sign(value) * Math.min(max_magnitude, Math.abs(value));
-      }
-      const beta_diff = clampMagnitude(beta - initial_beta);
-      const gamma_diff = clampMagnitude(gamma - initial_gamma);
-      force_x = beta_diff / max_magnitude;
-      force_y = gamma_diff / max_magnitude;
-      apply_force = true;
-    }
-  };
-  function enableDeviceOrientation() {
-    const deviceOrientationListener = (event) => {
-      const { alpha, beta, gamma } = event;
-      document.getElementById("orientation_alpha").innerText = alpha.toFixed(0);
-      document.getElementById("orientation_beta").innerText = beta.toFixed(0);
-      document.getElementById("orientation_gamma").innerText = gamma.toFixed(0);
-      console.dir(event);
-    };
-    if (window.DeviceOrientationEvent) {
-      console.log("supports DeviceOrientationEvent");
-      if (DeviceOrientationEvent.requestPermission) {
-        console.log("must request permission for DeviceOrientationEvent");
-        DeviceOrientationEvent.requestPermission().then((response) => {
-          if (response == "granted") {
-            window.addEventListener(
-              "deviceorientation",
-              deviceOrientationListener
-            );
-            window.addEventListener(
-              "deviceorientation",
-              forceFromDeviceOrientation
-            );
-          } else {
-            console.log("no permission for DeviceOrientationEvent");
-          }
-        });
-      } else {
-        console.log("no permission required for DeviceOrientationEvent");
-        window.addEventListener("deviceorientation", deviceOrientationListener);
-        window.addEventListener(
-          "deviceorientation",
-          forceFromDeviceOrientation
-        );
-      }
-      window.addEventListener("deviceorientation", deviceOrientationListener);
-    }
-  }
-  document.getElementById("enable").onclick = enableDeviceOrientation;
 
   const canvas = document.getElementById("canvas");
   const context = canvas.getContext("2d");
@@ -127,38 +153,13 @@ async function app() {
     ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
   }
 
-  var force_x = 0.0;
-  var force_y = 0.1;
-  var apply_force = false;
-  const force_scale = 0.2;
-  const force_max = 0.5;
-  function clampForce(force) {
-    return Math.sign(force) * Math.min(force_max, Math.abs(force));
-  }
-  const decideForceFn = (event) => {
-    event.preventDefault();
-    const rect = canvas.getBoundingClientRect();
-    const canvas_x = event.clientX - rect.left;
-    const canvas_x_proportion = canvas_x / maxX;
-    const canvas_y = event.clientY - rect.top;
-    const canvas_y_proportion = canvas_y / maxY;
-    force_x = clampForce((canvas_x_proportion * 2.0 - 1.0) * force_scale);
-    force_y = clampForce(
-      -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale
-    );
-    // console.log("decide force", force_x, force_y);
+  var sensorModel = registerCanvasForceSensor(canvas);
+  document.getElementById("enable").onclick = () => {
+    const physicalSensorModel = registerPhysicalForceSensor();
+    if (physicalSensorModel !== null) {
+      sensorModel = physicalSensorModel;
+    }
   };
-  canvas.addEventListener("pointerdown", (event) => {
-    decideForceFn(event);
-    // console.log("start applying force");
-    apply_force = true;
-  });
-  canvas.addEventListener("pointermove", decideForceFn);
-  canvas.addEventListener("pointerup", (event) => {
-    event.preventDefault();
-    // console.log("stop applying force");
-    apply_force = false;
-  });
 
   function draw() {
     context.clearRect(0, 0, maxX, maxY);
@@ -172,12 +173,13 @@ async function app() {
     const halfMaxY = maxY / 2.0;
     context.moveTo(halfMaxX, halfMaxY);
     context.lineTo(
-      halfMaxX + (force_x / force_max) * halfMaxX,
-      halfMaxY + ((-1.0 * force_y) / force_max) * halfMaxY
+      halfMaxX + (sensorModel.force.x / sensorModel.force.max) * halfMaxX,
+      halfMaxY +
+        ((-1.0 * sensorModel.force.y) / sensorModel.force.max) * halfMaxY
     );
     context.lineWidth = 5;
     context.lineCap = "round";
-    if (apply_force) {
+    if (sensorModel.force.apply) {
       context.strokeStyle = "red";
     } else {
       context.strokeStyle = "green";
@@ -194,9 +196,9 @@ async function app() {
     } else {
       const elapsed = timestamp - start;
       const elapsedSinceLastUpdate = elapsed - lastUpdate;
-      if (apply_force) {
-        console.log("apply force", force_x, force_y);
-        sim.set_force(force_x, force_y);
+      if (sensorModel.force.apply) {
+        console.log("apply force", sensorModel.force.x, sensorModel.force.y);
+        sim.set_force(sensorModel.force.x, sensorModel.force.y);
       } else {
         sim.set_force(0.0, 0.0);
       }

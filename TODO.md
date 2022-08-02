@@ -16,5 +16,6 @@ TODOs:
 - (/) simple sim of ball falling due to gravity, with 2d position of ball showing
 - (/) allow velocity force to be applied to the ball
 - (/) some visualisation of applied force
-- (x) base velocity force on orientation of device (i.e. based on gravity as felt by device)
-- ...
+- (/) base velocity force on orientation of device (i.e. based on gravity as felt by device)
+- (x) tidy-up implementation so that there is a clearer separation between sensors/rendering and simulation
+- (x) switch to 3d box with rolling ball
