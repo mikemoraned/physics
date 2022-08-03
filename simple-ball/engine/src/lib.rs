@@ -42,11 +42,31 @@ impl RapierState {
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
-        /* Create the ground. */
-        let collider = ColliderBuilder::cuboid(100.0, 0.1, 100.0).build();
-        collider_set.insert(collider);
+        let side_length = 75.0;
+        let thickness = 0.1;
+        /* ground. */
+        let ground = ColliderBuilder::cuboid(side_length, thickness, side_length).build();
+        collider_set.insert(ground);
+        /* walls */
+        let wall_y_extent = 100.0;
+        let wall1 = ColliderBuilder::cuboid(thickness, wall_y_extent, side_length)
+            .translation(vector![-thickness, 0.0, 0.0])
+            .build();
+        let wall2 = ColliderBuilder::cuboid(thickness, wall_y_extent, side_length)
+            .translation(vector![side_length, 0.0, 0.0])
+            .build();
+        let wall3 = ColliderBuilder::cuboid(side_length, wall_y_extent, thickness)
+            .translation(vector![0.0, 0.0, -thickness])
+            .build();
+        let wall4 = ColliderBuilder::cuboid(side_length, wall_y_extent, thickness)
+            .translation(vector![0.0, 0.0, side_length])
+            .build();
+        collider_set.insert(wall1);
+        collider_set.insert(wall2);
+        collider_set.insert(wall3);
+        collider_set.insert(wall4);
 
-        /* Create the bouncing ball. */
+        /* bouncing ball. */
         let rigid_body = RigidBodyBuilder::dynamic()
                 .translation(vector![ball_x, 0.0, ball_z])
                 .build();

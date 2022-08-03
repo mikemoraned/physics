@@ -19,4 +19,5 @@ TODOs:
 - (/) base velocity force on orientation of device (i.e. based on gravity as felt by device)
 - (/) tidy-up implementation so that there is a clearer separation between sensors/rendering and simulation
 - (/) get it correctly picking up orientation and using that to control the ball on my ipad
-- (x) switch to 3d box with rolling ball
+- (/) switch to 3d scene with rolling ball
+- (x) encase ball by walls so it can't roll outside

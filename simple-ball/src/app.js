@@ -226,8 +226,10 @@ async function app() {
   const scaleX = maxX / simWidth;
   const scaleY = maxY / simHeight;
   function updateBall(sim_x, sim_y) {
-    ball.x = clampX(sim_x * scaleX);
-    ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
+    // ball.x = clampX(sim_x * scaleX);
+    // ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
+    ball.x = sim_x * scaleX;
+    ball.y = maxY - sim_y * scaleY; // y is inverted in sim vs display
   }
 
   var sensorModel = registerCanvasForceSensor(canvas);
