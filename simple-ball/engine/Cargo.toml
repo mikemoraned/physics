@@ -11,4 +11,4 @@ crate-type = ["cdylib"]
 [dependencies]
 wasm-bindgen = "0.2"
 js-sys = "0.3"
-rapier2d = { version = "*", features = [ "wasm-bindgen", "enhanced-determinism" ] }
+rapier3d = { version = "*", features = [ "wasm-bindgen", "enhanced-determinism" ] }

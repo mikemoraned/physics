@@ -6,9 +6,9 @@ export class RapierState {
   free(): void;
 /**
 * @param {number} x
-* @param {number} y
+* @param {number} z
 */
-  set_ball_force(x: number, y: number): void;
+  set_ball_force(x: number, z: number): void;
 }
 /**
 */

@@ -79,10 +79,10 @@ export class RapierState {
     }
     /**
     * @param {number} x
-    * @param {number} y
+    * @param {number} z
     */
-    set_ball_force(x, y) {
-        wasm.rapierstate_set_ball_force(this.ptr, x, y);
+    set_ball_force(x, z) {
+        wasm.rapierstate_set_ball_force(this.ptr, x, z);
     }
 }
 /**

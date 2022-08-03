@@ -1,5 +1,5 @@
 use wasm_bindgen::prelude::*;
-use rapier2d::prelude::*;
+use rapier3d::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
@@ -36,26 +36,26 @@ struct RapierState {
 
 #[wasm_bindgen]
 impl RapierState {
-    fn new(ball_x: f32, ball_y: f32, ball_radius: f32) -> RapierState {
+    fn new(ball_x: f32, ball_z: f32, ball_radius: f32) -> RapierState {
         console_log!("Creating RapierState");
 
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
         /* Create the ground. */
-        let collider = ColliderBuilder::cuboid(100.0, 0.1).build();
+        let collider = ColliderBuilder::cuboid(100.0, 0.1, 100.0).build();
         collider_set.insert(collider);
 
         /* Create the bouncing ball. */
         let rigid_body = RigidBodyBuilder::dynamic()
-                .translation(vector![ball_x, ball_y])
+                .translation(vector![ball_x, 0.0, ball_z])
                 .build();
         let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
         let ball_body_handle = rigid_body_set.insert(rigid_body);
         collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
 
         /* Create other structures necessary for the simulation. */
-        let gravity = vector![0.0, -9.81];
+        let gravity = vector![0.0, -9.81, 0.0];
         // let integration_parameters = IntegrationParameters::default();
         let integration_parameters = IntegrationParameters { 
             dt: 1.0 / 1000.0, 
@@ -85,11 +85,11 @@ impl RapierState {
         }
     }
 
-    pub fn set_ball_force(&mut self, x: f32, y: f32) { 
+    pub fn set_ball_force(&mut self, x: f32, z: f32) { 
         let ball_body = self.rigid_body_set.get_mut(self.ball_body_handle).unwrap();
 
         ball_body.reset_forces(true);
-        ball_body.add_force(vector![x, y], true);
+        ball_body.add_force(vector![x, 0.0, z], true);
     }
 
     fn ball_position(&self) -> &Vector<Real> {
@@ -143,6 +143,6 @@ impl Simulation {
         let this = JsValue::null();
         let _ = update_fn.call2(&this, 
             &JsValue::from(ball_position.x), 
-            &JsValue::from(ball_position.y));
+            &JsValue::from(ball_position.z));
     }   
 }
