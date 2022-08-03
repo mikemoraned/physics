@@ -1,4 +1,8 @@
-import init, { Simulation } from "../engine/pkg/simple_ball_engine.js";
+import init, {
+  Simulation,
+  Ball,
+  View,
+} from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
@@ -200,37 +204,42 @@ async function app() {
 
   const canvas = document.getElementById("canvas");
 
-  const maxX = canvas.width - 1;
-  const maxY = canvas.height - 1;
+  //   const maxX = canvas.width - 1;
+  //   const maxY = canvas.width - 1; // assume width = height
 
-  const minDimension = Math.min(maxX, maxY);
-  const ballRadius = 0.05 * minDimension;
-  const ball = {
-    x: 0.5 * maxX,
-    y: 0.5 * maxY,
-  };
+  //   const minDimension = Math.min(maxX, maxY);
+  //   const ballRadius = 0.05 * minDimension;
+  //   const ball = {
+  //     x: 0.5 * maxX,
+  //     y: 0.5 * maxY,
+  //   };
 
-  function clampX(x) {
-    return Math.min(Math.max(0, x), maxX - ballRadius);
-  }
+  //   function clampX(x) {
+  //     return Math.min(Math.max(0, x), maxX - ballRadius);
+  //   }
 
-  function clampY(y) {
-    return Math.min(Math.max(0, y), maxY - ballRadius);
-  }
+  //   function clampY(y) {
+  //     return Math.min(Math.max(0, y), maxY - ballRadius);
+  //   }
 
   // Simulation area is a 100x100 box, which we map to our maxX, maxY
   // area. We place a single ball.
-  const sim = new Simulation(50.0, 50.0, ballRadius / minDimension);
-  const simWidth = 100.0;
-  const simHeight = 100.0;
-  const scaleX = maxX / simWidth;
-  const scaleY = maxY / simHeight;
-  function updateBall(sim_x, sim_y) {
-    // ball.x = clampX(sim_x * scaleX);
-    // ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
-    ball.x = sim_x * scaleX;
-    ball.y = maxY - sim_y * scaleY; // y is inverted in sim vs display
-  }
+  //   const sim = new Simulation(50.0, 50.0, ballRadius / minDimension);
+  const side_length = canvas.width; // assume width = height
+  const ball = new Ball(0.5 * side_length, 0.5 * side_length);
+  const ballRadius = 0.05 * side_length;
+  const view = new View(side_length);
+  const sim = new Simulation(ball, view);
+  //   const simWidth = 100.0;
+  //   const simHeight = 100.0;
+  //   const scaleX = maxX / simWidth;
+  //   const scaleY = maxY / simHeight;
+  //   function updateBall(sim_x, sim_y) {
+  //     // ball.x = clampX(sim_x * scaleX);
+  //     // ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
+  //     ball.x = sim_x * scaleX;
+  //     ball.y = maxY - sim_y * scaleY; // y is inverted in sim vs display
+  //   }
 
   var sensorModel = registerCanvasForceSensor(canvas);
   document.getElementById("enable").onclick = async () => {
@@ -259,7 +268,8 @@ async function app() {
       } else {
         sim.set_force(0.0, 0.0);
       }
-      sim.update(elapsedSinceLastUpdate, updateBall);
+      //   sim.update(elapsedSinceLastUpdate, updateBall);
+      sim.update(elapsedSinceLastUpdate);
       lastUpdate = elapsed;
     }
     draw(ball, ballRadius, sensorModel, canvas);

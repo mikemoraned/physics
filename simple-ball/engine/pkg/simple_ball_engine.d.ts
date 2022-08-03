@@ -2,6 +2,16 @@
 /* eslint-disable */
 /**
 */
+export class Ball {
+  free(): void;
+/**
+* @param {number} x
+* @param {number} y
+*/
+  constructor(x: number, y: number);
+}
+/**
+*/
 export class RapierState {
   free(): void;
 /**
@@ -15,11 +25,10 @@ export class RapierState {
 export class Simulation {
   free(): void;
 /**
-* @param {number} ball_x
-* @param {number} ball_y
-* @param {number} ball_radius
+* @param {Ball} ball
+* @param {View} view
 */
-  constructor(ball_x: number, ball_y: number, ball_radius: number);
+  constructor(ball: Ball, view: View);
 /**
 * @param {number} x
 * @param {number} y
@@ -27,22 +36,33 @@ export class Simulation {
   set_force(x: number, y: number): void;
 /**
 * @param {number} elapsed_since_last_update
-* @param {Function} update_fn
 */
-  update(elapsed_since_last_update: number, update_fn: Function): void;
+  update(elapsed_since_last_update: number): void;
+}
+/**
+*/
+export class View {
+  free(): void;
+/**
+* @param {number} side_length
+*/
+  constructor(side_length: number);
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly __wbg_simulation_free: (a: number) => void;
   readonly __wbg_rapierstate_free: (a: number) => void;
   readonly rapierstate_set_ball_force: (a: number, b: number, c: number) => void;
-  readonly simulation_new: (a: number, b: number, c: number) => number;
+  readonly __wbg_simulation_free: (a: number) => void;
+  readonly __wbg_view_free: (a: number) => void;
+  readonly view_new: (a: number) => number;
+  readonly __wbg_ball_free: (a: number) => void;
+  readonly ball_new: (a: number, b: number) => number;
+  readonly simulation_new: (a: number, b: number) => number;
   readonly simulation_set_force: (a: number, b: number, c: number) => void;
-  readonly simulation_update: (a: number, b: number, c: number) => void;
-  readonly __wbindgen_exn_store: (a: number) => void;
+  readonly simulation_update: (a: number, b: number) => void;
 }
 
 /**

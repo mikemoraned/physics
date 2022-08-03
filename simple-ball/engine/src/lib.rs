@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
+use nalgebra::Point2;
 
 #[wasm_bindgen]
 extern "C" {
@@ -11,11 +12,6 @@ macro_rules! console_log {
     // Note that this is using the `log` function imported above during
     // `bare_bones`
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
-
-#[wasm_bindgen]
-pub struct Simulation {
-    state: RapierState
 }
 
 #[wasm_bindgen]
@@ -34,15 +30,38 @@ struct RapierState {
     ball_body_handle: RigidBodyHandle,
 }
 
+#[derive(Debug)]
+struct Scene {
+    arena_side_length: f32
+}
+
+impl Scene {
+    fn map_view_to_arena(&self, view: &View, point: Point2<Real>) -> Vector<Real> {
+        // arena_side_length = 10, view.side_length = 100
+        // 50, 50 -> 5, 5
+        let scale = self.arena_side_length / view.side_length;
+        vector![point.x * scale, 0.0, point.y * scale]
+    }
+
+    fn map_arena_to_view(&self, view: &View, vector: Vector<Real>) -> Point2<Real> {
+        // arena_side_length = 10, view.side_length = 100
+        // 5, 5 -> 50, 50
+        let scale = view.side_length / self.arena_side_length;
+        Point2::new(vector.x * scale, vector.z * scale)
+    }
+}
+
 #[wasm_bindgen]
 impl RapierState {
-    fn new(ball_x: f32, ball_z: f32, ball_radius: f32) -> RapierState {
+    fn new(ball_translation: Vector<Real>, scene: &Scene) -> RapierState {
         console_log!("Creating RapierState");
+
+        let ball_radius = 0.05 * scene.arena_side_length;
 
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
-        let side_length = 75.0;
+        let side_length = scene.arena_side_length;
         let thickness = 0.1;
         /* ground. */
         let ground = ColliderBuilder::cuboid(side_length, thickness, side_length).build();
@@ -68,7 +87,7 @@ impl RapierState {
 
         /* bouncing ball. */
         let rigid_body = RigidBodyBuilder::dynamic()
-                .translation(vector![ball_x, 0.0, ball_z])
+                .translation(ball_translation)
                 .build();
         let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
         let ball_body_handle = rigid_body_set.insert(rigid_body);
@@ -143,26 +162,69 @@ impl RapierState {
 }
 
 #[wasm_bindgen]
+pub struct Simulation {
+    state: RapierState,
+    view: View,
+    scene: Scene,
+    ball: Ball
+}
+
+#[wasm_bindgen]
+#[derive(Debug)]
+pub struct View {
+    side_length: f32
+}
+
+#[wasm_bindgen]
+impl View {
+    #[wasm_bindgen(constructor)]
+    pub fn new(side_length: f32) -> View {
+        View { side_length }
+    }
+}
+
+#[wasm_bindgen]
+#[derive(Debug)]
+pub struct Ball {
+    x: f32,
+    y: f32
+}
+
+#[wasm_bindgen]
+impl Ball {
+    #[wasm_bindgen(constructor)]
+    pub fn new(x: f32, y: f32) -> Ball {
+        Ball { x, y }
+    }
+
+    fn as_point2(&self) -> Point2<Real> {
+        Point2::new(self.x, self.y)
+    }
+}
+
+#[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(ball_x: f32, ball_y: f32, ball_radius: f32) -> Simulation {
-        console_log!("Creating Simulation, with ball at {}, {} with radius {}", ball_x, ball_y, ball_radius);
-        let state = RapierState::new(ball_x, ball_y, ball_radius);
-        Simulation { state }
+    pub fn new(ball: Ball, view: View) -> Simulation {
+        let scene = Scene {
+            arena_side_length: 100.0
+        };
+        console_log!("Creating Simulation, with ball {:?}, using view {:?}, and scene: {:?}", ball, view, scene);
+        let scene_ball = scene.map_view_to_arena(&view, ball.as_point2());
+        let state = RapierState::new(scene_ball, &scene);
+        Simulation { state, view, scene, ball }
     }
 
     pub fn set_force(&mut self, x: f32, y: f32) { 
         self.state.set_ball_force(x, y);
     }
 
-    pub fn update(&mut self, elapsed_since_last_update: u32, update_fn: &js_sys::Function) { 
+    pub fn update(&mut self, elapsed_since_last_update: u32) { 
         self.state.step(elapsed_since_last_update);
-        let ball_position = self.state.ball_position();
-        // console_log!("Ball position: {}", ball_position);
-
-        let this = JsValue::null();
-        let _ = update_fn.call2(&this, 
-            &JsValue::from(ball_position.x), 
-            &JsValue::from(ball_position.z));
+        let ball_scene_position = self.state.ball_position();
+        console_log!("Ball position: {}", ball_scene_position);
+        let ball_position = self.scene.map_arena_to_view(&self.view, ball_scene_position.clone());
+        self.ball.x = ball_position.x;
+        self.ball.y = ball_position.y;
     }   
 }

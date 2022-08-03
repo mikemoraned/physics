@@ -1,35 +1,6 @@
 
 let wasm;
 
-const heap = new Array(32).fill(undefined);
-
-heap.push(undefined, null, true, false);
-
-let heap_next = heap.length;
-
-function addHeapObject(obj) {
-    if (heap_next === heap.length) heap.push(heap.length + 1);
-    const idx = heap_next;
-    heap_next = heap[idx];
-
-    heap[idx] = obj;
-    return idx;
-}
-
-function getObject(idx) { return heap[idx]; }
-
-function dropObject(idx) {
-    if (idx < 36) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
@@ -47,19 +18,41 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
-let stack_pointer = 32;
-
-function addBorrowedObject(obj) {
-    if (stack_pointer == 1) throw new Error('out of js stack');
-    heap[--stack_pointer] = obj;
-    return stack_pointer;
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
 }
+/**
+*/
+export class Ball {
 
-function handleError(f, args) {
-    try {
-        return f.apply(this, args);
-    } catch (e) {
-        wasm.__wbindgen_exn_store(addHeapObject(e));
+    static __wrap(ptr) {
+        const obj = Object.create(Ball.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_ball_free(ptr);
+    }
+    /**
+    * @param {number} x
+    * @param {number} y
+    */
+    constructor(x, y) {
+        const ret = wasm.ball_new(x, y);
+        return Ball.__wrap(ret);
     }
 }
 /**
@@ -108,12 +101,17 @@ export class Simulation {
         wasm.__wbg_simulation_free(ptr);
     }
     /**
-    * @param {number} ball_x
-    * @param {number} ball_y
-    * @param {number} ball_radius
+    * @param {Ball} ball
+    * @param {View} view
     */
-    constructor(ball_x, ball_y, ball_radius) {
-        const ret = wasm.simulation_new(ball_x, ball_y, ball_radius);
+    constructor(ball, view) {
+        _assertClass(ball, Ball);
+        var ptr0 = ball.ptr;
+        ball.ptr = 0;
+        _assertClass(view, View);
+        var ptr1 = view.ptr;
+        view.ptr = 0;
+        const ret = wasm.simulation_new(ptr0, ptr1);
         return Simulation.__wrap(ret);
     }
     /**
@@ -125,14 +123,39 @@ export class Simulation {
     }
     /**
     * @param {number} elapsed_since_last_update
-    * @param {Function} update_fn
     */
-    update(elapsed_since_last_update, update_fn) {
-        try {
-            wasm.simulation_update(this.ptr, elapsed_since_last_update, addBorrowedObject(update_fn));
-        } finally {
-            heap[stack_pointer++] = undefined;
-        }
+    update(elapsed_since_last_update) {
+        wasm.simulation_update(this.ptr, elapsed_since_last_update);
+    }
+}
+/**
+*/
+export class View {
+
+    static __wrap(ptr) {
+        const obj = Object.create(View.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_view_free(ptr);
+    }
+    /**
+    * @param {number} side_length
+    */
+    constructor(side_length) {
+        const ret = wasm.view_new(side_length);
+        return View.__wrap(ret);
     }
 }
 
@@ -173,17 +196,6 @@ function getImports() {
     imports.wbg.__wbg_log_63d19a8aab427726 = function(arg0, arg1) {
         console.log(getStringFromWasm0(arg0, arg1));
     };
-    imports.wbg.__wbindgen_number_new = function(arg0) {
-        const ret = arg0;
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-        takeObject(arg0);
-    };
-    imports.wbg.__wbg_call_187e4e7f6f4285fb = function() { return handleError(function (arg0, arg1, arg2, arg3) {
-        const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3));
-        return addHeapObject(ret);
-    }, arguments) };
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };
