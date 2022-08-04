@@ -54,6 +54,20 @@ export class Ball {
         const ret = wasm.ball_new(x, y);
         return Ball.__wrap(ret);
     }
+    /**
+    * @returns {number}
+    */
+    get x() {
+        const ret = wasm.ball_x(this.ptr);
+        return ret;
+    }
+    /**
+    * @returns {number}
+    */
+    get y() {
+        const ret = wasm.ball_y(this.ptr);
+        return ret;
+    }
 }
 /**
 */
@@ -106,12 +120,8 @@ export class Simulation {
     */
     constructor(ball, view) {
         _assertClass(ball, Ball);
-        var ptr0 = ball.ptr;
-        ball.ptr = 0;
         _assertClass(view, View);
-        var ptr1 = view.ptr;
-        view.ptr = 0;
-        const ret = wasm.simulation_new(ptr0, ptr1);
+        const ret = wasm.simulation_new(ball.ptr, view.ptr);
         return Simulation.__wrap(ret);
     }
     /**
@@ -120,6 +130,13 @@ export class Simulation {
     */
     set_force(x, y) {
         wasm.simulation_set_force(this.ptr, x, y);
+    }
+    /**
+    * @returns {Ball}
+    */
+    get ball() {
+        const ret = wasm.simulation_ball(this.ptr);
+        return Ball.__wrap(ret);
     }
     /**
     * @param {number} elapsed_since_last_update

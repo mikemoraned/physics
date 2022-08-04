@@ -9,6 +9,12 @@ export class Ball {
 * @param {number} y
 */
   constructor(x: number, y: number);
+/**
+*/
+  readonly x: number;
+/**
+*/
+  readonly y: number;
 }
 /**
 */
@@ -38,6 +44,9 @@ export class Simulation {
 * @param {number} elapsed_since_last_update
 */
   update(elapsed_since_last_update: number): void;
+/**
+*/
+  readonly ball: Ball;
 }
 /**
 */
@@ -60,8 +69,11 @@ export interface InitOutput {
   readonly view_new: (a: number) => number;
   readonly __wbg_ball_free: (a: number) => void;
   readonly ball_new: (a: number, b: number) => number;
+  readonly ball_x: (a: number) => number;
+  readonly ball_y: (a: number) => number;
   readonly simulation_new: (a: number, b: number) => number;
   readonly simulation_set_force: (a: number, b: number, c: number) => void;
+  readonly simulation_ball: (a: number) => number;
   readonly simulation_update: (a: number, b: number) => void;
 }
 

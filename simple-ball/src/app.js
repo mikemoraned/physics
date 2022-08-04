@@ -24,7 +24,7 @@ function bindPhysicalSensorModel() {
       },
     },
     force: {
-      max: 1.0,
+      max: 9.0,
       x: undefined,
       y: undefined,
       apply: false,
@@ -108,13 +108,12 @@ async function registerPhysicalForceSensor() {
 function registerCanvasForceSensor(canvas) {
   const sensorModel = {
     force: {
-      max: 0.5,
+      max: 9,
       x: undefined,
       y: undefined,
       apply: false,
     },
   };
-  const force_scale = 0.2;
 
   const rect = canvas.getBoundingClientRect();
 
@@ -124,14 +123,10 @@ function registerCanvasForceSensor(canvas) {
     const canvas_x_proportion = canvas_x / canvas.width;
     const canvas_y = event.clientY - rect.top;
     const canvas_y_proportion = canvas_y / canvas.height;
-    sensorModel.force.x = clampMagnitude(
-      (canvas_x_proportion * 2.0 - 1.0) * force_scale,
-      sensorModel.force.max
-    );
-    sensorModel.force.y = clampMagnitude(
-      -1.0 * (canvas_y_proportion * 2.0 - 1.0) * force_scale,
-      sensorModel.force.max
-    );
+    sensorModel.force.x =
+      (canvas_x_proportion * 2.0 - 1.0) * sensorModel.force.max;
+    sensorModel.force.y =
+      -1.0 * (canvas_y_proportion * 2.0 - 1.0) * sensorModel.force.max;
   };
   canvas.addEventListener("pointerdown", (event) => {
     decideForceFn(event);
@@ -230,16 +225,6 @@ async function app() {
   const ballRadius = 0.05 * side_length;
   const view = new View(side_length);
   const sim = new Simulation(ball, view);
-  //   const simWidth = 100.0;
-  //   const simHeight = 100.0;
-  //   const scaleX = maxX / simWidth;
-  //   const scaleY = maxY / simHeight;
-  //   function updateBall(sim_x, sim_y) {
-  //     // ball.x = clampX(sim_x * scaleX);
-  //     // ball.y = clampY(maxY - sim_y * scaleY); // y is inverted in sim vs display
-  //     ball.x = sim_x * scaleX;
-  //     ball.y = maxY - sim_y * scaleY; // y is inverted in sim vs display
-  //   }
 
   var sensorModel = registerCanvasForceSensor(canvas);
   document.getElementById("enable").onclick = async () => {
@@ -270,9 +255,10 @@ async function app() {
       }
       //   sim.update(elapsedSinceLastUpdate, updateBall);
       sim.update(elapsedSinceLastUpdate);
+      console.log(sim.ball, sim.ball.x, sim.ball.y);
       lastUpdate = elapsed;
     }
-    draw(ball, ballRadius, sensorModel, canvas);
+    draw(sim.ball, ballRadius, sensorModel, canvas);
 
     window.requestAnimationFrame(animate);
   }

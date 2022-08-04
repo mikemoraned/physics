@@ -170,7 +170,7 @@ pub struct Simulation {
 }
 
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct View {
     side_length: f32
 }
@@ -184,7 +184,7 @@ impl View {
 }
 
 #[wasm_bindgen]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Ball {
     x: f32,
     y: f32
@@ -197,6 +197,16 @@ impl Ball {
         Ball { x, y }
     }
 
+    #[wasm_bindgen(getter)]
+    pub fn x(&self) -> f32 {
+        self.x
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn y(&self) -> f32 {
+        self.y
+    }
+
     fn as_point2(&self) -> Point2<Real> {
         Point2::new(self.x, self.y)
     }
@@ -205,7 +215,7 @@ impl Ball {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(ball: Ball, view: View) -> Simulation {
+    pub fn new(ball: &Ball, view: &View) -> Simulation {
         let scene = Scene {
             arena_side_length: 100.0
         };
@@ -213,11 +223,16 @@ impl Simulation {
         let default_y = 10.0;
         let scene_ball = scene.map_view_to_arena(&view, ball.as_point2(), default_y);
         let state = RapierState::new(scene_ball, &scene);
-        Simulation { state, view, scene, ball }
+        Simulation { state, view: view.clone(), scene, ball: ball.clone() }
     }
 
     pub fn set_force(&mut self, x: f32, y: f32) { 
         self.state.set_ball_force(x, y);
+    }
+
+    #[wasm_bindgen(getter)]
+    pub fn ball(&self) -> Ball {
+        self.ball.clone()
     }
 
     pub fn update(&mut self, elapsed_since_last_update: u32) { 
