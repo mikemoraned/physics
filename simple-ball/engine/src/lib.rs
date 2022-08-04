@@ -94,7 +94,9 @@ impl Terrain {
         let index_y_stride = (self.height - 1) / subdivisions;
         DMatrix::from_fn(subdivisions, subdivisions, |i, j| {
             let index_x = i * index_x_stride;
+            // let index_x = self.width - 1 - (i * index_x_stride);
             let index_y = self.height - 1 - (j * index_y_stride);
+            // let index_y = (j * index_y_stride);
             let elevation = self.elevations.index((index_x, index_y));
             (elevation - offset) * scale
         })
@@ -175,7 +177,10 @@ impl RapierState {
         //         (ComplexField::sin(x) + ComplexField::cos(z)) * ball_radius * 0.05
         //     }
         // });
-        let heights = terrain.as_heightfield_heights(subdivisions, ball_radius * 0.05);
+        // let max_heightfield = ball_radius * 0.05;
+        let max_heightfield = ball_radius;
+        let heights 
+            = terrain.as_heightfield_heights(subdivisions, max_heightfield);
         let heightfield = ColliderBuilder::heightfield(heights, ground_size)
             .translation(vector![0.5 * side_length, 0.0, 0.5 * side_length])
             .build();
