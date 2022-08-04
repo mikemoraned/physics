@@ -46,23 +46,29 @@ function bindPhysicalSensorModel() {
       };
       sensorModel.sensor_data.initialised = true;
     }
-    const max_magnitude = 20;
+    const max_beta_gamma_diff_magnitude = 10;
     const beta_diff = clampMagnitude(
       beta - sensorModel.sensor_data.initial.beta,
-      max_magnitude
+      max_beta_gamma_diff_magnitude
     );
     const gamma_diff = clampMagnitude(
       gamma - sensorModel.sensor_data.initial.gamma,
-      max_magnitude
+      max_beta_gamma_diff_magnitude
     );
     sensorModel.sensor_data.current = {
       beta,
       gamma,
     };
+    const force_x =
+      (gamma_diff / max_beta_gamma_diff_magnitude) * sensorModel.force.max;
+    const force_y =
+      -1.0 *
+      (beta_diff / max_beta_gamma_diff_magnitude) *
+      sensorModel.force.max;
     sensorModel.force = {
       ...sensorModel.force,
-      x: gamma_diff / max_magnitude,
-      y: -1.0 * (beta_diff / max_magnitude),
+      x: force_x,
+      y: force_y,
       apply: true,
     };
   }
