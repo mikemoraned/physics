@@ -36,18 +36,18 @@ struct Scene {
 }
 
 impl Scene {
-    fn map_view_to_arena(&self, view: &View, point: Point2<Real>) -> Vector<Real> {
-        // arena_side_length = 10, view.side_length = 100
-        // 50, 50 -> 5, 5
+    fn map_view_to_arena(&self, view: &View, point: Point2<Real>, default_y: Real) -> Vector<Real> {
         let scale = self.arena_side_length / view.side_length;
-        vector![point.x * scale, 0.0, point.y * scale]
+        let x = point.x * scale;
+        let z = self.arena_side_length - (point.y * scale);
+        vector![x, default_y, z]
     }
 
     fn map_arena_to_view(&self, view: &View, vector: Vector<Real>) -> Point2<Real> {
-        // arena_side_length = 10, view.side_length = 100
-        // 5, 5 -> 50, 50
         let scale = view.side_length / self.arena_side_length;
-        Point2::new(vector.x * scale, vector.z * scale)
+        let x = vector.x * scale;
+        let y = view.side_length - (vector.z * scale);
+        Point2::new(x, y)
     }
 }
 
@@ -56,7 +56,7 @@ impl RapierState {
     fn new(ball_translation: Vector<Real>, scene: &Scene) -> RapierState {
         console_log!("Creating RapierState");
 
-        let ball_radius = 0.05 * scene.arena_side_length;
+        let ball_radius = 0.01 * scene.arena_side_length;
 
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
@@ -210,7 +210,8 @@ impl Simulation {
             arena_side_length: 100.0
         };
         console_log!("Creating Simulation, with ball {:?}, using view {:?}, and scene: {:?}", ball, view, scene);
-        let scene_ball = scene.map_view_to_arena(&view, ball.as_point2());
+        let default_y = 10.0;
+        let scene_ball = scene.map_view_to_arena(&view, ball.as_point2(), default_y);
         let state = RapierState::new(scene_ball, &scene);
         Simulation { state, view, scene, ball }
     }
@@ -227,4 +228,40 @@ impl Simulation {
         self.ball.x = ball_position.x;
         self.ball.y = ball_position.y;
     }   
+}
+
+#[cfg(test)]
+mod tests {
+    use wasm_bindgen_test::*;
+    use super::*;
+
+    #[wasm_bindgen_test]
+    fn test_map_view_to_arena() {
+        let scene = Scene {
+            arena_side_length: 10.0
+        };
+        let view = View {
+            side_length: 100.0
+        };
+        let input = Point2::new(20.0, 20.0);
+        let default_y = 0.123;
+        let expected = vector![2.0, default_y, 8.0];
+        let actual = scene.map_view_to_arena(&view, input, default_y);
+        assert_eq!(expected, actual);
+    }
+
+    #[wasm_bindgen_test]
+    fn test_map_arena_to_view() {
+        let scene = Scene {
+            arena_side_length: 10.0
+        };
+        let view = View {
+            side_length: 100.0
+        };
+        let default_y = 0.123;
+        let input = vector![2.0, default_y, 8.0];
+        let expected = Point2::new(20.0, 20.0);
+        let actual = scene.map_arena_to_view(&view, input);
+        assert_eq!(expected, actual);
+    }
 }
