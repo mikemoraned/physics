@@ -32,9 +32,10 @@ export class Simulation {
   free(): void;
 /**
 * @param {number} num_balls
+* @param {Terrain} terrain
 * @param {View} view
 */
-  constructor(num_balls: number, view: View);
+  constructor(num_balls: number, terrain: Terrain, view: View);
 /**
 * @param {number} x
 * @param {number} y
@@ -89,7 +90,7 @@ export interface InitOutput {
   readonly ball_new: (a: number, b: number) => number;
   readonly ball_x: (a: number) => number;
   readonly ball_y: (a: number) => number;
-  readonly simulation_new: (a: number, b: number) => number;
+  readonly simulation_new: (a: number, b: number, c: number) => number;
   readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
   readonly simulation_set_force: (a: number, b: number, c: number) => void;

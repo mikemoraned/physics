@@ -154,6 +154,7 @@ function draw(sim, sensorModel, terrain, canvas) {
 
   context.drawImage(terrain, 0, 0, width, height);
 
+  context.fillStyle = "blue";
   sim.iter_ball_positions((x, y, ballRadius) => {
     context.beginPath();
     context.arc(x, y, ballRadius, 0, 2 * Math.PI);
@@ -232,7 +233,7 @@ async function app() {
   const side_length = canvas.width; // assume width = height
   const view = new View(side_length);
   const num_balls = 100;
-  const sim = new Simulation(num_balls, view);
+  const sim = new Simulation(num_balls, terrain, view);
 
   var sensorModel = registerCanvasForceSensor(canvas);
   document.getElementById("enable").onclick = async () => {

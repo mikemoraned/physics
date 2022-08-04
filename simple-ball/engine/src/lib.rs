@@ -1,4 +1,4 @@
-use image::{GenericImageView, DynamicImage, ImageBuffer, GrayImage};
+use image::{GenericImageView, DynamicImage, ImageBuffer};
 use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
 use nalgebra::Point2;
@@ -82,6 +82,25 @@ impl Terrain {
     }
 }
 
+impl Terrain {
+    pub fn as_heightfield_heights(&self, subdivisions: usize, max_value: Real) -> DMatrix<Real> {
+        let min = self.elevations.min();
+        let max = self.elevations.max();
+        let range = max - min;
+        let scale = max_value / range;
+        let offset = min;
+
+        let index_x_stride = (self.width - 1) / subdivisions;
+        let index_y_stride = (self.height - 1) / subdivisions;
+        DMatrix::from_fn(subdivisions, subdivisions, |i, j| {
+            let index_x = i * index_x_stride;
+            let index_y = self.height - 1 - (j * index_y_stride);
+            let elevation = self.elevations.index((index_x, index_y));
+            (elevation - offset) * scale
+        })
+    }
+}
+
 #[wasm_bindgen]
 struct RapierState {
     rigid_body_set:  RigidBodySet,
@@ -122,7 +141,7 @@ impl Scene {
 
 #[wasm_bindgen]
 impl RapierState {
-    fn new(ball_translations: Vec<Vector<Real>>, scene: &Scene) -> RapierState {
+    fn new(ball_translations: Vec<Vector<Real>>, terrain: &Terrain, scene: &Scene) -> RapierState {
         use rapier3d::na::ComplexField;
 
         console_log!("Creating RapierState");
@@ -145,17 +164,18 @@ impl RapierState {
         let ground_size 
             = Vector::new(side_length, height_y_extent, side_length);
         let subdivisions : usize = 100;
-        let heights 
-            = DMatrix::from_fn(subdivisions + 1, subdivisions + 1, |i, j| {
-            if i == 0 || i == subdivisions || j == 0 || j == subdivisions {
-                height_y_extent
-            } else {
-                let x = i as f32 * ground_size.x / (subdivisions as f32);
-                let z = j as f32 * ground_size.z / (subdivisions as f32);
+        // let heights 
+        //     = DMatrix::from_fn(subdivisions + 1, subdivisions + 1, |i, j| {
+        //     if i == 0 || i == subdivisions || j == 0 || j == subdivisions {
+        //         height_y_extent
+        //     } else {
+        //         let x = i as f32 * ground_size.x / (subdivisions as f32);
+        //         let z = j as f32 * ground_size.z / (subdivisions as f32);
 
-                (ComplexField::sin(x) + ComplexField::cos(z)) * ball_radius * 0.05
-            }
-        });
+        //         (ComplexField::sin(x) + ComplexField::cos(z)) * ball_radius * 0.05
+        //     }
+        // });
+        let heights = terrain.as_heightfield_heights(subdivisions, ball_radius * 0.05);
         let heightfield = ColliderBuilder::heightfield(heights, ground_size)
             .translation(vector![0.5 * side_length, 0.0, 0.5 * side_length])
             .build();
@@ -327,18 +347,19 @@ impl Ball {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(num_balls: u8, view: &View) -> Simulation {
+    pub fn new(num_balls: u8, terrain: &Terrain, view: &View) -> Simulation {
         let scene = Scene {
             arena_side_length: 50.0
         };
-        console_log!("Creating Simulation, with num_balls {:?}, using view {:?}, and scene: {:?}", num_balls, view, scene);
+        console_log!("Creating Simulation, with num_balls {:?}, using view {:?}, terrain of {}x{}, and scene: {:?}", 
+            num_balls, view, terrain.width, terrain.height, scene);
         let default_y = 10.0;
         let balls = Self::random_balls(num_balls, &view);
         let scene_balls : Vec<Vector<Real>> = balls
             .iter()
             .map(|ball| scene.map_view_to_arena(&view, ball.as_point2(), default_y))
             .collect();
-        let state = RapierState::new(scene_balls, &scene);
+        let state = RapierState::new(scene_balls, terrain, &scene);
         Simulation { state, view: view.clone(), scene, balls }
     }
 

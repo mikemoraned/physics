@@ -185,11 +185,13 @@ export class Simulation {
     }
     /**
     * @param {number} num_balls
+    * @param {Terrain} terrain
     * @param {View} view
     */
-    constructor(num_balls, view) {
+    constructor(num_balls, terrain, view) {
+        _assertClass(terrain, Terrain);
         _assertClass(view, View);
-        const ret = wasm.simulation_new(num_balls, view.ptr);
+        const ret = wasm.simulation_new(num_balls, terrain.ptr, view.ptr);
         return Simulation.__wrap(ret);
     }
     /**
