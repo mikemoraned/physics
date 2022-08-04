@@ -217,7 +217,7 @@ impl Simulation {
     #[wasm_bindgen(constructor)]
     pub fn new(ball: &Ball, view: &View) -> Simulation {
         let scene = Scene {
-            arena_side_length: 100.0
+            arena_side_length: 50.0
         };
         console_log!("Creating Simulation, with ball {:?}, using view {:?}, and scene: {:?}", ball, view, scene);
         let default_y = 10.0;
