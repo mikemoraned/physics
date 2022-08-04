@@ -31,22 +31,23 @@ export class RapierState {
 export class Simulation {
   free(): void;
 /**
-* @param {Ball} ball
+* @param {number} num_balls
 * @param {View} view
 */
-  constructor(ball: Ball, view: View);
+  constructor(num_balls: number, view: View);
 /**
 * @param {number} x
 * @param {number} y
 */
   set_force(x: number, y: number): void;
 /**
+* @param {Function} iter_fn
+*/
+  iter_ball_positions(iter_fn: Function): void;
+/**
 * @param {number} elapsed_since_last_update
 */
   update(elapsed_since_last_update: number): void;
-/**
-*/
-  readonly ball: Ball;
 }
 /**
 */
@@ -72,9 +73,10 @@ export interface InitOutput {
   readonly ball_x: (a: number) => number;
   readonly ball_y: (a: number) => number;
   readonly simulation_new: (a: number, b: number) => number;
-  readonly simulation_set_force: (a: number, b: number, c: number) => void;
-  readonly simulation_ball: (a: number) => number;
+  readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
+  readonly simulation_set_force: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_exn_store: (a: number) => void;
 }
 
 /**

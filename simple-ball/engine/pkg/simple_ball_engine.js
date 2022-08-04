@@ -1,6 +1,35 @@
 
 let wasm;
 
+const heap = new Array(32).fill(undefined);
+
+heap.push(undefined, null, true, false);
+
+let heap_next = heap.length;
+
+function addHeapObject(obj) {
+    if (heap_next === heap.length) heap.push(heap.length + 1);
+    const idx = heap_next;
+    heap_next = heap[idx];
+
+    heap[idx] = obj;
+    return idx;
+}
+
+function getObject(idx) { return heap[idx]; }
+
+function dropObject(idx) {
+    if (idx < 36) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
+}
+
 const cachedTextDecoder = new TextDecoder('utf-8', { ignoreBOM: true, fatal: true });
 
 cachedTextDecoder.decode();
@@ -24,6 +53,24 @@ function _assertClass(instance, klass) {
     }
     return instance.ptr;
 }
+
+let stack_pointer = 32;
+
+function addBorrowedObject(obj) {
+    if (stack_pointer == 1) throw new Error('out of js stack');
+    heap[--stack_pointer] = obj;
+    return stack_pointer;
+}
+
+function handleError(f, args) {
+    try {
+        return f.apply(this, args);
+    } catch (e) {
+        wasm.__wbindgen_exn_store(addHeapObject(e));
+    }
+}
+
+function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
 /**
 */
 export class Ball {
@@ -115,13 +162,12 @@ export class Simulation {
         wasm.__wbg_simulation_free(ptr);
     }
     /**
-    * @param {Ball} ball
+    * @param {number} num_balls
     * @param {View} view
     */
-    constructor(ball, view) {
-        _assertClass(ball, Ball);
+    constructor(num_balls, view) {
         _assertClass(view, View);
-        const ret = wasm.simulation_new(ball.ptr, view.ptr);
+        const ret = wasm.simulation_new(num_balls, view.ptr);
         return Simulation.__wrap(ret);
     }
     /**
@@ -129,14 +175,17 @@ export class Simulation {
     * @param {number} y
     */
     set_force(x, y) {
-        wasm.simulation_set_force(this.ptr, x, y);
+        wasm.rapierstate_set_ball_force(this.ptr, x, y);
     }
     /**
-    * @returns {Ball}
+    * @param {Function} iter_fn
     */
-    get ball() {
-        const ret = wasm.simulation_ball(this.ptr);
-        return Ball.__wrap(ret);
+    iter_ball_positions(iter_fn) {
+        try {
+            wasm.simulation_iter_ball_positions(this.ptr, addBorrowedObject(iter_fn));
+        } finally {
+            heap[stack_pointer++] = undefined;
+        }
     }
     /**
     * @param {number} elapsed_since_last_update
@@ -213,6 +262,18 @@ function getImports() {
     imports.wbg.__wbg_log_63d19a8aab427726 = function(arg0, arg1) {
         console.log(getStringFromWasm0(arg0, arg1));
     };
+    imports.wbg.__wbindgen_number_new = function(arg0) {
+        const ret = arg0;
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+        takeObject(arg0);
+    };
+    imports.wbg.__wbg_call_187e4e7f6f4285fb = function() { return handleError(function (arg0, arg1, arg2, arg3) {
+        const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3));
+        return addHeapObject(ret);
+    }, arguments) };
+    imports.wbg.__wbg_random_5ee0189319837e3a = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');
     imports.wbg.__wbindgen_throw = function(arg0, arg1) {
         throw new Error(getStringFromWasm0(arg0, arg1));
     };

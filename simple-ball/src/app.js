@@ -146,15 +146,17 @@ function registerCanvasForceSensor(canvas) {
   return sensorModel;
 }
 
-function draw(ball, ballRadius, sensorModel, canvas) {
+function draw(sim, ballRadius, sensorModel, canvas) {
   const { width, height } = canvas;
   const context = canvas.getContext("2d");
 
   context.clearRect(0, 0, width, height);
 
-  context.beginPath();
-  context.arc(ball.x, ball.y, ballRadius, 0, 2 * Math.PI);
-  context.fill();
+  sim.iter_ball_positions((x, y) => {
+    context.beginPath();
+    context.arc(x, y, ballRadius, 0, 2 * Math.PI);
+    context.fill();
+  });
 
   context.beginPath();
   const max_size_x = (0.8 * width) / 2.0;
@@ -205,32 +207,11 @@ async function app() {
 
   const canvas = document.getElementById("canvas");
 
-  //   const maxX = canvas.width - 1;
-  //   const maxY = canvas.width - 1; // assume width = height
-
-  //   const minDimension = Math.min(maxX, maxY);
-  //   const ballRadius = 0.05 * minDimension;
-  //   const ball = {
-  //     x: 0.5 * maxX,
-  //     y: 0.5 * maxY,
-  //   };
-
-  //   function clampX(x) {
-  //     return Math.min(Math.max(0, x), maxX - ballRadius);
-  //   }
-
-  //   function clampY(y) {
-  //     return Math.min(Math.max(0, y), maxY - ballRadius);
-  //   }
-
-  // Simulation area is a 100x100 box, which we map to our maxX, maxY
-  // area. We place a single ball.
-  //   const sim = new Simulation(50.0, 50.0, ballRadius / minDimension);
   const side_length = canvas.width; // assume width = height
-  const ball = new Ball(0.5 * side_length, 0.5 * side_length);
   const ballRadius = 0.05 * side_length;
   const view = new View(side_length);
-  const sim = new Simulation(ball, view);
+  const num_balls = 5;
+  const sim = new Simulation(num_balls, view);
 
   var sensorModel = registerCanvasForceSensor(canvas);
   document.getElementById("enable").onclick = async () => {
@@ -259,12 +240,10 @@ async function app() {
       } else {
         sim.set_force(0.0, 0.0);
       }
-      //   sim.update(elapsedSinceLastUpdate, updateBall);
       sim.update(elapsedSinceLastUpdate);
-      console.log(sim.ball, sim.ball.x, sim.ball.y);
       lastUpdate = elapsed;
     }
-    draw(sim.ball, ballRadius, sensorModel, canvas);
+    draw(sim, ballRadius, sensorModel, canvas);
 
     window.requestAnimationFrame(animate);
   }

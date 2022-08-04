@@ -27,7 +27,7 @@ struct RapierState {
     impulse_joint_set:  ImpulseJointSet,
     multibody_joint_set:  MultibodyJointSet,
     ccd_solver:  CCDSolver,
-    ball_body_handle: RigidBodyHandle,
+    ball_body_handles: Vec<RigidBodyHandle>,
 }
 
 #[derive(Debug)]
@@ -53,7 +53,7 @@ impl Scene {
 
 #[wasm_bindgen]
 impl RapierState {
-    fn new(ball_translation: Vector<Real>, scene: &Scene) -> RapierState {
+    fn new(ball_translations: Vec<Vector<Real>>, scene: &Scene) -> RapierState {
         console_log!("Creating RapierState");
 
         let ball_radius = 0.01 * scene.arena_side_length;
@@ -85,13 +85,17 @@ impl RapierState {
         collider_set.insert(wall3);
         collider_set.insert(wall4);
 
-        /* bouncing ball. */
-        let rigid_body = RigidBodyBuilder::dynamic()
-                .translation(ball_translation)
-                .build();
-        let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
-        let ball_body_handle = rigid_body_set.insert(rigid_body);
-        collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
+        /* bouncing balls. */
+        let mut ball_body_handles : Vec<RigidBodyHandle> = Vec::new();
+        for ball_translation in ball_translations {
+            let rigid_body = RigidBodyBuilder::dynamic()
+                    .translation(ball_translation)
+                    .build();
+            let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
+            let ball_body_handle = rigid_body_set.insert(rigid_body);
+            collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
+            ball_body_handles.push(ball_body_handle);
+        }
 
         /* Create other structures necessary for the simulation. */
         let gravity = vector![0.0, -9.81, 0.0];
@@ -120,20 +124,26 @@ impl RapierState {
             impulse_joint_set,
             multibody_joint_set,
             ccd_solver,
-            ball_body_handle
+            ball_body_handles
         }
     }
 
     pub fn set_ball_force(&mut self, x: f32, z: f32) { 
-        let ball_body = self.rigid_body_set.get_mut(self.ball_body_handle).unwrap();
+        for ball_body_handle in &self.ball_body_handles {
+            let ball_body = self.rigid_body_set.get_mut(ball_body_handle.clone()).unwrap();
 
-        ball_body.reset_forces(true);
-        ball_body.add_force(vector![x, 0.0, z], true);
+            ball_body.reset_forces(true);
+            ball_body.add_force(vector![x, 0.0, z], true);
+        }
     }
 
-    fn ball_position(&self) -> &Vector<Real> {
-        let ball_body = &self.rigid_body_set[self.ball_body_handle];
-        ball_body.translation()
+    fn ball_translations(&self) -> Vec<Vector<Real>> {
+        let mut ball_translations = Vec::new();
+        for ball_body_handle in &self.ball_body_handles {
+            let ball_body = &self.rigid_body_set[ball_body_handle.clone()];
+            ball_translations.push(ball_body.translation().clone());
+        }
+        ball_translations
     }
 
     fn step(&mut self, steps: u32) {
@@ -166,7 +176,7 @@ pub struct Simulation {
     state: RapierState,
     view: View,
     scene: Scene,
-    ball: Ball
+    balls: Vec<Ball>
 }
 
 #[wasm_bindgen]
@@ -215,33 +225,56 @@ impl Ball {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(ball: &Ball, view: &View) -> Simulation {
+    pub fn new(num_balls: u8, view: &View) -> Simulation {
         let scene = Scene {
             arena_side_length: 50.0
         };
-        console_log!("Creating Simulation, with ball {:?}, using view {:?}, and scene: {:?}", ball, view, scene);
+        console_log!("Creating Simulation, with num_balls {:?}, using view {:?}, and scene: {:?}", num_balls, view, scene);
         let default_y = 10.0;
-        let scene_ball = scene.map_view_to_arena(&view, ball.as_point2(), default_y);
-        let state = RapierState::new(scene_ball, &scene);
-        Simulation { state, view: view.clone(), scene, ball: ball.clone() }
+        let balls = Self::random_balls(num_balls, &view);
+        let scene_balls : Vec<Vector<Real>> = balls
+            .iter()
+            .map(|ball| scene.map_view_to_arena(&view, ball.as_point2(), default_y))
+            .collect();
+        let state = RapierState::new(scene_balls, &scene);
+        Simulation { state, view: view.clone(), scene, balls }
+    }
+
+    fn random_balls(num_balls: u8, view: &View) -> Vec<Ball> {
+        use js_sys::Math::random;
+        let mut balls = Vec::new();
+        for _ in 0 .. num_balls {
+            balls.push(Ball {
+                x: view.side_length * (random() as f32),
+                y: view.side_length * (random() as f32)
+            });
+        }
+        balls
     }
 
     pub fn set_force(&mut self, x: f32, y: f32) { 
         self.state.set_ball_force(x, y);
     }
 
-    #[wasm_bindgen(getter)]
-    pub fn ball(&self) -> Ball {
-        self.ball.clone()
+    pub fn iter_ball_positions(&self, iter_fn: &js_sys::Function) {
+        for ball in &self.balls {
+            let this = JsValue::null();
+            let _ = iter_fn.call2(&this, 
+                &JsValue::from(ball.x), &JsValue::from(ball.y));
+        }
     }
 
     pub fn update(&mut self, elapsed_since_last_update: u32) { 
         self.state.step(elapsed_since_last_update);
-        let ball_scene_position = self.state.ball_position();
-        console_log!("Ball position: {}", ball_scene_position);
-        let ball_position = self.scene.map_arena_to_view(&self.view, ball_scene_position.clone());
-        self.ball.x = ball_position.x;
-        self.ball.y = ball_position.y;
+        let ball_scene_translations = self.state.ball_translations();
+        for i in 0 .. ball_scene_translations.len() {
+            let ball_scene_translation = ball_scene_translations[i];
+            console_log!("Ball position: {}", ball_scene_translation);
+            let ball_position = self.scene.map_arena_to_view(&self.view, ball_scene_translation.clone());
+            let mut ball = &mut self.balls[i];
+            ball.x = ball_position.x;
+            ball.y = ball_position.y;
+        }
     }   
 }
 
