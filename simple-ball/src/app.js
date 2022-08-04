@@ -1,8 +1,4 @@
-import init, {
-  Simulation,
-  Ball,
-  View,
-} from "../engine/pkg/simple_ball_engine.js";
+import init, { Simulation, View } from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
@@ -146,11 +142,13 @@ function registerCanvasForceSensor(canvas) {
   return sensorModel;
 }
 
-function draw(sim, sensorModel, canvas) {
+function draw(sim, sensorModel, terrainBitmap, canvas) {
   const { width, height } = canvas;
   const context = canvas.getContext("2d");
 
   context.clearRect(0, 0, width, height);
+
+  context.drawImage(terrainBitmap, 0, 0, width, height);
 
   sim.iter_ball_positions((x, y, ballRadius) => {
     context.beginPath();
@@ -200,15 +198,27 @@ function draw(sim, sensorModel, canvas) {
   }
 }
 
+async function loadTerrainBlob() {
+  const terrain_path =
+    "./src/data/guide-access-elevation-data-example-response-960-5d3c885c50fbb3feea782f36bf241b87.png";
+  const response = await fetch(terrain_path);
+  console.log(response);
+  const blob = await response.blob();
+  console.log(blob);
+  return blob;
+}
+
 async function app() {
   console.log("starting init ...");
   await init();
   console.log("init done");
 
+  const terrainBlob = await loadTerrainBlob();
+  const terrainBitmap = await createImageBitmap(terrainBlob);
+
   const canvas = document.getElementById("canvas");
 
   const side_length = canvas.width; // assume width = height
-  const ballRadius = 0.05 * side_length;
   const view = new View(side_length);
   const num_balls = 100;
   const sim = new Simulation(num_balls, view);
@@ -243,7 +253,7 @@ async function app() {
       sim.update(elapsedSinceLastUpdate);
       lastUpdate = elapsed;
     }
-    draw(sim, sensorModel, canvas);
+    draw(sim, sensorModel, terrainBitmap, canvas);
 
     window.requestAnimationFrame(animate);
   }
