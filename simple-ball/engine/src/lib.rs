@@ -28,6 +28,7 @@ struct RapierState {
     multibody_joint_set:  MultibodyJointSet,
     ccd_solver:  CCDSolver,
     ball_body_handles: Vec<RigidBodyHandle>,
+    ball_radius: f32
 }
 
 #[derive(Debug)]
@@ -124,7 +125,8 @@ impl RapierState {
             impulse_joint_set,
             multibody_joint_set,
             ccd_solver,
-            ball_body_handles
+            ball_body_handles,
+            ball_radius
         }
     }
 
@@ -144,6 +146,10 @@ impl RapierState {
             ball_translations.push(ball_body.translation().clone());
         }
         ball_translations
+    }
+
+    fn ball_radius(&self) -> f32 {
+        self.ball_radius
     }
 
     fn step(&mut self, steps: u32) {
@@ -257,10 +263,15 @@ impl Simulation {
     }
 
     pub fn iter_ball_positions(&self, iter_fn: &js_sys::Function) {
+        let scene_ball_radius = self.state.ball_radius();
+        let p = self.scene.map_arena_to_view(&self.view, vector![scene_ball_radius, scene_ball_radius, scene_ball_radius]);
+        let ball_radius = p.x;
         for ball in &self.balls {
             let this = JsValue::null();
-            let _ = iter_fn.call2(&this, 
-                &JsValue::from(ball.x), &JsValue::from(ball.y));
+            let _ = iter_fn.call3(&this, 
+                &JsValue::from(ball.x), 
+                &JsValue::from(ball.y), 
+                &JsValue::from(ball_radius));
         }
     }
 
@@ -269,7 +280,7 @@ impl Simulation {
         let ball_scene_translations = self.state.ball_translations();
         for i in 0 .. ball_scene_translations.len() {
             let ball_scene_translation = ball_scene_translations[i];
-            console_log!("Ball position: {}", ball_scene_translation);
+            // console_log!("Ball position: {}", ball_scene_translation);
             let ball_position = self.scene.map_arena_to_view(&self.view, ball_scene_translation.clone());
             let mut ball = &mut self.balls[i];
             ball.x = ball_position.x;

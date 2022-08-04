@@ -269,8 +269,8 @@ function getImports() {
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);
     };
-    imports.wbg.__wbg_call_187e4e7f6f4285fb = function() { return handleError(function (arg0, arg1, arg2, arg3) {
-        const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3));
+    imports.wbg.__wbg_call_a51357fb7467f969 = function() { return handleError(function (arg0, arg1, arg2, arg3, arg4) {
+        const ret = getObject(arg0).call(getObject(arg1), getObject(arg2), getObject(arg3), getObject(arg4));
         return addHeapObject(ret);
     }, arguments) };
     imports.wbg.__wbg_random_5ee0189319837e3a = typeof Math.random == 'function' ? Math.random : notDefined('Math.random');

@@ -146,13 +146,13 @@ function registerCanvasForceSensor(canvas) {
   return sensorModel;
 }
 
-function draw(sim, ballRadius, sensorModel, canvas) {
+function draw(sim, sensorModel, canvas) {
   const { width, height } = canvas;
   const context = canvas.getContext("2d");
 
   context.clearRect(0, 0, width, height);
 
-  sim.iter_ball_positions((x, y) => {
+  sim.iter_ball_positions((x, y, ballRadius) => {
     context.beginPath();
     context.arc(x, y, ballRadius, 0, 2 * Math.PI);
     context.fill();
@@ -210,7 +210,7 @@ async function app() {
   const side_length = canvas.width; // assume width = height
   const ballRadius = 0.05 * side_length;
   const view = new View(side_length);
-  const num_balls = 5;
+  const num_balls = 100;
   const sim = new Simulation(num_balls, view);
 
   var sensorModel = registerCanvasForceSensor(canvas);
@@ -243,7 +243,7 @@ async function app() {
       sim.update(elapsedSinceLastUpdate);
       lastUpdate = elapsed;
     }
-    draw(sim, ballRadius, sensorModel, canvas);
+    draw(sim, sensorModel, canvas);
 
     window.requestAnimationFrame(animate);
   }
