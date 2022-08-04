@@ -197,7 +197,7 @@ export class Simulation {
     * @param {number} y
     */
     set_force(x, y) {
-        wasm.simulation_set_force(this.ptr, x, y);
+        wasm.rapierstate_set_ball_force(this.ptr, x, y);
     }
     /**
     * @param {Function} iter_fn

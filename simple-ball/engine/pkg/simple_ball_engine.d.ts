@@ -90,9 +90,9 @@ export interface InitOutput {
   readonly ball_x: (a: number) => number;
   readonly ball_y: (a: number) => number;
   readonly simulation_new: (a: number, b: number) => number;
-  readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
+  readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_free: (a: number, b: number) => void;

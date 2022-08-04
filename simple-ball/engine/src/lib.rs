@@ -1,3 +1,4 @@
+use image::{GenericImageView, DynamicImage, ImageBuffer, GrayImage};
 use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
 use nalgebra::Point2;
@@ -16,25 +17,56 @@ macro_rules! console_log {
 
 #[wasm_bindgen]
 pub struct Terrain {
-    png_data: Vec<u8>
+    elevations: DMatrix<Real>,
+    width: usize,
+    height: usize
 }
 
 #[wasm_bindgen]
 impl Terrain {
     pub fn from_png_terrain_image(data: Vec<u8>) -> Terrain {
-        Terrain { png_data: data }
+        console_log!("reading image");
+        let result = 
+            image::load_from_memory_with_format(&data, 
+                image::ImageFormat::Png);
+        let image = result.unwrap();
+        console_log!("read image");
+
+        let elevations 
+            = DMatrix::from_fn(image.width() as usize, image.height() as usize, |x, y| {
+
+            let pixel = image.get_pixel(x as u32, y as u32);
+            let (r, g, b) = (pixel[0] as f32, pixel[1] as f32, pixel[2] as f32);
+            let elevation = -10000.0 + ((r * 256.0 * 256.0 + g * 256.0 + b) * 0.1);
+            elevation
+        });
+
+        Terrain { 
+            elevations, 
+            width: image.width() as usize, 
+            height: image.height() as usize
+        }
     }
 
     pub fn as_grayscale_height_image(&self) -> Vec<u8> {
         use std::io::Cursor;
 
-        console_log!("reading image");
-        let result = 
-            image::load_from_memory_with_format(&self.png_data, 
-                image::ImageFormat::Png);
-        let image = result.unwrap();
-        console_log!("read image");
+        let min = self.elevations.min();
+        let max = self.elevations.max();
+        let range = max - min;
+        let max_luma = u16::MAX as f32;
+        let scale = max_luma / range;
+        let offset = min;
 
+        let image_buffer 
+            = ImageBuffer::from_fn(self.width as u32, self.height as u32, |x, y| {
+            let elevation = self.elevations.index((x as usize, y as usize));
+            let luma = ((elevation - offset) * scale) as u16;
+                image::Luma([luma])
+        });
+
+        let image = DynamicImage::ImageLuma16(image_buffer);
+        
         console_log!("writing image");
         let mut cursor = Cursor::new(Vec::new());
         image::write_buffer_with_format(
