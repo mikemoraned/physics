@@ -21,6 +21,7 @@ TODOs:
 - (/) get it correctly picking up orientation and using that to control the ball on my ipad
 - (/) switch to 3d scene with rolling ball
 - (/) encase ball by walls so it can't roll outside
-- (x) add multiple balls
+- (/) add multiple balls
 - (x) add bumpy floor (based on heightfield)
 - (x) derive heightfield from heightfield image
+- (x) make it run reasonably with lots of balls
