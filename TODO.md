@@ -22,6 +22,6 @@ TODOs:
 - (/) switch to 3d scene with rolling ball
 - (/) encase ball by walls so it can't roll outside
 - (/) add multiple balls
-- (x) add bumpy floor (based on heightfield)
+- (/) add bumpy floor (based on heightfield)
 - (x) derive heightfield from heightfield image
 - (x) make it run reasonably with lots of balls
