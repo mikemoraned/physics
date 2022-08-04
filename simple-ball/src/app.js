@@ -1,4 +1,8 @@
-import init, { Simulation, View } from "../engine/pkg/simple_ball_engine.js";
+import init, {
+  Simulation,
+  View,
+  Terrain,
+} from "../engine/pkg/simple_ball_engine.js";
 
 console.log("Running");
 
@@ -142,13 +146,13 @@ function registerCanvasForceSensor(canvas) {
   return sensorModel;
 }
 
-function draw(sim, sensorModel, terrainBitmap, canvas) {
+function draw(sim, sensorModel, terrain, canvas) {
   const { width, height } = canvas;
   const context = canvas.getContext("2d");
 
   context.clearRect(0, 0, width, height);
 
-  context.drawImage(terrainBitmap, 0, 0, width, height);
+  context.drawImage(terrain, 0, 0, width, height);
 
   sim.iter_ball_positions((x, y, ballRadius) => {
     context.beginPath();
@@ -215,6 +219,13 @@ async function app() {
 
   const terrainBlob = await loadTerrainBlob();
   const terrainBitmap = await createImageBitmap(terrainBlob);
+  const terrainBuffer = new Uint8Array(await terrainBlob.arrayBuffer());
+  const terrain = Terrain.from_png_terrain_image(terrainBuffer);
+  const grayscaleHeightBuffer = terrain.as_grayscale_height_image();
+  const grayscaleHeightBlob = new Blob([grayscaleHeightBuffer], {
+    type: "image/png",
+  });
+  const grayscaleHeightBitmap = await createImageBitmap(grayscaleHeightBlob);
 
   const canvas = document.getElementById("canvas");
 
@@ -253,7 +264,7 @@ async function app() {
       sim.update(elapsedSinceLastUpdate);
       lastUpdate = elapsed;
     }
-    draw(sim, sensorModel, terrainBitmap, canvas);
+    draw(sim, sensorModel, grayscaleHeightBitmap, canvas);
 
     window.requestAnimationFrame(animate);
   }

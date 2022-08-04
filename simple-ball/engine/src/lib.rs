@@ -15,6 +15,42 @@ macro_rules! console_log {
 }
 
 #[wasm_bindgen]
+pub struct Terrain {
+    png_data: Vec<u8>
+}
+
+#[wasm_bindgen]
+impl Terrain {
+    pub fn from_png_terrain_image(data: Vec<u8>) -> Terrain {
+        Terrain { png_data: data }
+    }
+
+    pub fn as_grayscale_height_image(&self) -> Vec<u8> {
+        use std::io::Cursor;
+
+        console_log!("reading image");
+        let result = 
+            image::load_from_memory_with_format(&self.png_data, 
+                image::ImageFormat::Png);
+        let image = result.unwrap();
+        console_log!("read image");
+
+        console_log!("writing image");
+        let mut cursor = Cursor::new(Vec::new());
+        image::write_buffer_with_format(
+            &mut cursor, 
+            image.as_bytes(), 
+            image.width(), 
+            image.height(),
+            image.color(),
+            image::ImageFormat::Png
+        ).unwrap();
+        console_log!("wrote image");
+        cursor.get_ref().clone()
+    }
+}
+
+#[wasm_bindgen]
 struct RapierState {
     rigid_body_set:  RigidBodySet,
     collider_set:  ColliderSet,

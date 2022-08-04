@@ -47,6 +47,28 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+let WASM_VECTOR_LEN = 0;
+
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1);
+    getUint8Memory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
+let cachedInt32Memory0 = new Int32Array();
+
+function getInt32Memory0() {
+    if (cachedInt32Memory0.byteLength === 0) {
+        cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
+    }
+    return cachedInt32Memory0;
+}
+
+function getArrayU8FromWasm0(ptr, len) {
+    return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
+}
+
 function _assertClass(instance, klass) {
     if (!(instance instanceof klass)) {
         throw new Error(`expected instance of ${klass.name}`);
@@ -175,7 +197,7 @@ export class Simulation {
     * @param {number} y
     */
     set_force(x, y) {
-        wasm.rapierstate_set_ball_force(this.ptr, x, y);
+        wasm.simulation_set_force(this.ptr, x, y);
     }
     /**
     * @param {Function} iter_fn
@@ -192,6 +214,55 @@ export class Simulation {
     */
     update(elapsed_since_last_update) {
         wasm.simulation_update(this.ptr, elapsed_since_last_update);
+    }
+}
+/**
+*/
+export class Terrain {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Terrain.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_terrain_free(ptr);
+    }
+    /**
+    * @param {Uint8Array} data
+    * @returns {Terrain}
+    */
+    static from_png_terrain_image(data) {
+        const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.terrain_from_png_terrain_image(ptr0, len0);
+        return Terrain.__wrap(ret);
+    }
+    /**
+    * @returns {Uint8Array}
+    */
+    as_grayscale_height_image() {
+        try {
+            const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+            wasm.terrain_as_grayscale_height_image(retptr, this.ptr);
+            var r0 = getInt32Memory0()[retptr / 4 + 0];
+            var r1 = getInt32Memory0()[retptr / 4 + 1];
+            var v0 = getArrayU8FromWasm0(r0, r1).slice();
+            wasm.__wbindgen_free(r0, r1 * 1);
+            return v0;
+        } finally {
+            wasm.__wbindgen_add_to_stack_pointer(16);
+        }
     }
 }
 /**
@@ -288,6 +359,7 @@ function initMemory(imports, maybe_memory) {
 function finalizeInit(instance, module) {
     wasm = instance.exports;
     init.__wbindgen_wasm_module = module;
+    cachedInt32Memory0 = new Int32Array();
     cachedUint8Memory0 = new Uint8Array();
 
 

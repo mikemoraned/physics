@@ -51,6 +51,20 @@ export class Simulation {
 }
 /**
 */
+export class Terrain {
+  free(): void;
+/**
+* @param {Uint8Array} data
+* @returns {Terrain}
+*/
+  static from_png_terrain_image(data: Uint8Array): Terrain;
+/**
+* @returns {Uint8Array}
+*/
+  as_grayscale_height_image(): Uint8Array;
+}
+/**
+*/
 export class View {
   free(): void;
 /**
@@ -63,6 +77,9 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_terrain_free: (a: number) => void;
+  readonly terrain_from_png_terrain_image: (a: number, b: number) => number;
+  readonly terrain_as_grayscale_height_image: (a: number, b: number) => void;
   readonly __wbg_rapierstate_free: (a: number) => void;
   readonly rapierstate_set_ball_force: (a: number, b: number, c: number) => void;
   readonly __wbg_simulation_free: (a: number) => void;
@@ -73,9 +90,12 @@ export interface InitOutput {
   readonly ball_x: (a: number) => number;
   readonly ball_y: (a: number) => number;
   readonly simulation_new: (a: number, b: number) => number;
+  readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
-  readonly simulation_set_force: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_malloc: (a: number) => number;
+  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __wbindgen_free: (a: number, b: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
 }
 
