@@ -20,4 +20,7 @@ TODOs:
 - (/) tidy-up implementation so that there is a clearer separation between sensors/rendering and simulation
 - (/) get it correctly picking up orientation and using that to control the ball on my ipad
 - (/) switch to 3d scene with rolling ball
-- (x) encase ball by walls so it can't roll outside
+- (/) encase ball by walls so it can't roll outside
+- (x) add multiple balls
+- (x) add bumpy floor (based on heightfield)
+- (x) derive heightfield from heightfield image
