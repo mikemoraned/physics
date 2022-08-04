@@ -55,6 +55,8 @@ impl Scene {
 #[wasm_bindgen]
 impl RapierState {
     fn new(ball_translations: Vec<Vector<Real>>, scene: &Scene) -> RapierState {
+        use rapier3d::na::ComplexField;
+
         console_log!("Creating RapierState");
 
         let ball_radius = 0.01 * scene.arena_side_length;
@@ -65,8 +67,32 @@ impl RapierState {
         let side_length = scene.arena_side_length;
         let thickness = 0.1;
         /* ground. */
-        let ground = ColliderBuilder::cuboid(side_length, thickness, side_length).build();
+        let ground = ColliderBuilder::cuboid(side_length, thickness, side_length)
+            .translation(vector![0.0, -thickness, 0.0])
+            .build();
         collider_set.insert(ground);
+
+        /* heightfield */
+        let height_y_extent = 100.0;
+        let ground_size 
+            = Vector::new(side_length, height_y_extent, side_length);
+        let subdivisions : usize = 100;
+        let heights 
+            = DMatrix::from_fn(subdivisions + 1, subdivisions + 1, |i, j| {
+            if i == 0 || i == subdivisions || j == 0 || j == subdivisions {
+                height_y_extent
+            } else {
+                let x = i as f32 * ground_size.x / (subdivisions as f32);
+                let z = j as f32 * ground_size.z / (subdivisions as f32);
+
+                (ComplexField::sin(x) + ComplexField::cos(z)) * ball_radius * 0.05
+            }
+        });
+        let heightfield = ColliderBuilder::heightfield(heights, ground_size)
+            .translation(vector![0.5 * side_length, 0.0, 0.5 * side_length])
+            .build();
+        collider_set.insert(heightfield);
+
         /* walls */
         let wall_y_extent = 100.0;
         let wall1 = ColliderBuilder::cuboid(thickness, wall_y_extent, side_length)
@@ -92,7 +118,9 @@ impl RapierState {
             let rigid_body = RigidBodyBuilder::dynamic()
                     .translation(ball_translation)
                     .build();
-            let collider = ColliderBuilder::ball(ball_radius).restitution(0.7).build();
+            let collider = ColliderBuilder::ball(ball_radius)
+                .restitution(0.8)
+                .build();
             let ball_body_handle = rigid_body_set.insert(rigid_body);
             collider_set.insert_with_parent(collider, ball_body_handle, &mut rigid_body_set);
             ball_body_handles.push(ball_body_handle);
