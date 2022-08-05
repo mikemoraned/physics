@@ -100,6 +100,7 @@ impl RapierState {
         let mut ball_body_handles : Vec<RigidBodyHandle> = Vec::new();
         for ball_translation in ball_translations {
             let rigid_body = RigidBodyBuilder::dynamic()
+                    .ccd_enabled(true)
                     .translation(ball_translation)
                     .build();
             let collider = ColliderBuilder::ball(ball_radius)
