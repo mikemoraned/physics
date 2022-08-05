@@ -427,10 +427,11 @@ mod mapping_tests {
             side_length: 100.0
         };
         let default_y = 0.123;
-        let mut mappings = Vec::new();
-        mappings.push((Point2::new(20.0, 20.0), vector![2.0, default_y, 8.0]));
-        mappings.push((Point2::new(50.0, 50.0), vector![5.0, default_y, 5.0]));
-        mappings.push((Point2::new(80.0, 80.0), vector![8.0, default_y, 2.0]));
+        let mappings = vec![
+            (Point2::new(20.0, 20.0), vector![2.0, default_y, 8.0]),
+            (Point2::new(50.0, 50.0), vector![5.0, default_y, 5.0]),
+            (Point2::new(80.0, 80.0), vector![8.0, default_y, 2.0])
+        ];
         Context {
             scene, view, mappings, default_y
         }
