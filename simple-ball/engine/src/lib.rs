@@ -31,17 +31,17 @@ struct Scene {
 }
 
 impl Scene {
-    fn map_view_to_arena(&self, view: &View, point: Point2<Real>, default_y: Real) -> Vector<Real> {
-        let scale = self.arena_side_length / view.side_length;
+    fn map_screen_to_arena(&self, screen: &Screen, point: Point2<Real>, default_y: Real) -> Vector<Real> {
+        let scale = self.arena_side_length / screen.side_length;
         let x = point.x * scale;
         let z = self.arena_side_length - (point.y * scale);
         vector![x, default_y, z]
     }
 
-    fn map_arena_to_view(&self, view: &View, vector: Vector<Real>) -> Point2<Real> {
-        let scale = view.side_length / self.arena_side_length;
+    fn map_arena_to_screen(&self, screen: &Screen, vector: Vector<Real>) -> Point2<Real> {
+        let scale = screen.side_length / self.arena_side_length;
         let x = vector.x * scale;
-        let y = view.side_length - (vector.z * scale);
+        let y = screen.side_length - (vector.z * scale);
         Point2::new(x, y)
     }
 }
@@ -192,22 +192,22 @@ impl RapierState {
 #[wasm_bindgen]
 pub struct Simulation {
     state: RapierState,
-    view: View,
+    screen: Screen,
     scene: Scene,
     balls: Vec<Ball>
 }
 
 #[wasm_bindgen]
 #[derive(Debug, Clone)]
-pub struct View {
+pub struct Screen {
     side_length: f32
 }
 
 #[wasm_bindgen]
-impl View {
+impl Screen {
     #[wasm_bindgen(constructor)]
-    pub fn new(side_length: f32) -> View {
-        View { side_length }
+    pub fn new(side_length: f32) -> Screen {
+        Screen { side_length }
     }
 }
 
@@ -243,29 +243,29 @@ impl Ball {
 #[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
-    pub fn new(num_balls: u8, terrain: &Terrain, view: &View) -> Simulation {
+    pub fn new(num_balls: u8, terrain: &Terrain, screen: &Screen) -> Simulation {
         let scene = Scene {
             arena_side_length: 50.0
         };
-        console_log!("Creating Simulation, with num_balls {:?}, using view {:?}, terrain of {}x{}, and scene: {:?}", 
-            num_balls, view, terrain.width, terrain.height, scene);
+        console_log!("Creating Simulation, with num_balls {:?}, using screen {:?}, terrain of {}x{}, and scene: {:?}", 
+            num_balls, screen, terrain.width, terrain.height, scene);
         let default_y = 10.0;
-        let balls = Self::random_balls(num_balls, &view);
+        let balls = Self::random_balls(num_balls, &screen);
         let scene_balls : Vec<Vector<Real>> = balls
             .iter()
-            .map(|ball| scene.map_view_to_arena(&view, ball.as_point2(), default_y))
+            .map(|ball| scene.map_screen_to_arena(&screen, ball.as_point2(), default_y))
             .collect();
         let state = RapierState::new(scene_balls, terrain, &scene);
-        Simulation { state, view: view.clone(), scene, balls }
+        Simulation { state, screen: screen.clone(), scene, balls }
     }
 
-    fn random_balls(num_balls: u8, view: &View) -> Vec<Ball> {
+    fn random_balls(num_balls: u8, screen: &Screen) -> Vec<Ball> {
         use js_sys::Math::random;
         let mut balls = Vec::new();
         for _ in 0 .. num_balls {
             balls.push(Ball {
-                x: view.side_length * (random() as f32),
-                y: view.side_length * (random() as f32)
+                x: screen.side_length * (random() as f32),
+                y: screen.side_length * (random() as f32)
             });
         }
         balls
@@ -277,7 +277,7 @@ impl Simulation {
 
     pub fn iter_ball_positions(&self, iter_fn: &js_sys::Function) {
         let scene_ball_radius = self.state.ball_radius();
-        let p = self.scene.map_arena_to_view(&self.view, vector![scene_ball_radius, scene_ball_radius, scene_ball_radius]);
+        let p = self.scene.map_arena_to_screen(&self.screen, vector![scene_ball_radius, scene_ball_radius, scene_ball_radius]);
         let ball_radius = p.x;
         for ball in &self.balls {
             let this = JsValue::null();
@@ -294,7 +294,7 @@ impl Simulation {
         for i in 0 .. ball_scene_translations.len() {
             let ball_scene_translation = ball_scene_translations[i];
             // console_log!("Ball position: {}", ball_scene_translation);
-            let ball_position = self.scene.map_arena_to_view(&self.view, ball_scene_translation.clone());
+            let ball_position = self.scene.map_arena_to_screen(&self.screen, ball_scene_translation.clone());
             let mut ball = &mut self.balls[i];
             ball.x = ball_position.x;
             ball.y = ball_position.y;
@@ -309,7 +309,7 @@ mod mapping_tests {
 
     struct Context {
         scene: Scene,
-        view: View,
+        screen: Screen,
         mappings: Vec<(Point2<Real>, Vector<Real>)>,
         default_y: Real
     }
@@ -318,7 +318,7 @@ mod mapping_tests {
         let scene = Scene {
             arena_side_length: 10.0
         };
-        let view = View {
+        let screen = Screen {
             side_length: 100.0
         };
         let default_y = 0.123;
@@ -328,27 +328,27 @@ mod mapping_tests {
             (Point2::new(80.0, 80.0), vector![8.0, default_y, 2.0])
         ];
         Context {
-            scene, view, mappings, default_y
+            scene, screen, mappings, default_y
         }
     }
 
     #[wasm_bindgen_test]
-    fn test_map_view_to_arena() {
+    fn test_map_screen_to_arena() {
         let context = context();
         for mapping in &context.mappings {
             let (input, expected) = mapping;
             let actual 
-                = context.scene.map_view_to_arena(&context.view, *input, context.default_y);
+                = context.scene.map_screen_to_arena(&context.screen, *input, context.default_y);
             assert_eq!(*expected, actual);
         }
     }
 
     #[wasm_bindgen_test]
-    fn test_map_arena_to_view() {
+    fn test_map_arena_to_screen() {
         let context = context();
         for mapping in &context.mappings {
             let (expected, input) = mapping;
-            let actual = context.scene.map_arena_to_view(&context.view, *input);
+            let actual = context.scene.map_arena_to_screen(&context.screen, *input);
             assert_eq!(*expected, actual);
         }
     }

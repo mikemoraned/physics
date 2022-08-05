@@ -1,6 +1,6 @@
 import init, {
   Simulation,
-  View,
+  Screen,
   Terrain,
 } from "../engine/pkg/simple_ball_engine.js";
 
@@ -231,9 +231,9 @@ async function app() {
   const canvas = document.getElementById("canvas");
 
   const side_length = canvas.width; // assume width = height
-  const view = new View(side_length);
+  const screen = new Screen(side_length);
   const num_balls = 100;
-  const sim = new Simulation(num_balls, terrain, view);
+  const sim = new Simulation(num_balls, terrain, screen);
 
   var sensorModel = registerCanvasForceSensor(canvas);
   document.getElementById("enable").onclick = async () => {

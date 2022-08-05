@@ -28,14 +28,23 @@ export class RapierState {
 }
 /**
 */
+export class Screen {
+  free(): void;
+/**
+* @param {number} side_length
+*/
+  constructor(side_length: number);
+}
+/**
+*/
 export class Simulation {
   free(): void;
 /**
 * @param {number} num_balls
 * @param {Terrain} terrain
-* @param {View} view
+* @param {Screen} screen
 */
-  constructor(num_balls: number, terrain: Terrain, view: View);
+  constructor(num_balls: number, terrain: Terrain, screen: Screen);
 /**
 * @param {number} x
 * @param {number} y
@@ -70,15 +79,6 @@ export class Terrain {
 */
   width: number;
 }
-/**
-*/
-export class View {
-  free(): void;
-/**
-* @param {number} side_length
-*/
-  constructor(side_length: number);
-}
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -87,8 +87,8 @@ export interface InitOutput {
   readonly __wbg_rapierstate_free: (a: number) => void;
   readonly rapierstate_set_ball_force: (a: number, b: number, c: number) => void;
   readonly __wbg_simulation_free: (a: number) => void;
-  readonly __wbg_view_free: (a: number) => void;
-  readonly view_new: (a: number) => number;
+  readonly __wbg_screen_free: (a: number) => void;
+  readonly screen_new: (a: number) => number;
   readonly __wbg_ball_free: (a: number) => void;
   readonly ball_new: (a: number, b: number) => number;
   readonly ball_x: (a: number) => number;

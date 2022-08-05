@@ -163,6 +163,36 @@ export class RapierState {
 }
 /**
 */
+export class Screen {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Screen.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_screen_free(ptr);
+    }
+    /**
+    * @param {number} side_length
+    */
+    constructor(side_length) {
+        const ret = wasm.screen_new(side_length);
+        return Screen.__wrap(ret);
+    }
+}
+/**
+*/
 export class Simulation {
 
     static __wrap(ptr) {
@@ -186,12 +216,12 @@ export class Simulation {
     /**
     * @param {number} num_balls
     * @param {Terrain} terrain
-    * @param {View} view
+    * @param {Screen} screen
     */
-    constructor(num_balls, terrain, view) {
+    constructor(num_balls, terrain, screen) {
         _assertClass(terrain, Terrain);
-        _assertClass(view, View);
-        const ret = wasm.simulation_new(num_balls, terrain.ptr, view.ptr);
+        _assertClass(screen, Screen);
+        const ret = wasm.simulation_new(num_balls, terrain.ptr, screen.ptr);
         return Simulation.__wrap(ret);
     }
     /**
@@ -291,36 +321,6 @@ export class Terrain {
         } finally {
             wasm.__wbindgen_add_to_stack_pointer(16);
         }
-    }
-}
-/**
-*/
-export class View {
-
-    static __wrap(ptr) {
-        const obj = Object.create(View.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_view_free(ptr);
-    }
-    /**
-    * @param {number} side_length
-    */
-    constructor(side_length) {
-        const ret = wasm.view_new(side_length);
-        return View.__wrap(ret);
     }
 }
 
