@@ -1,12 +1,15 @@
 use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
-use nalgebra::Point2;
 
 mod log;
 mod terrain;
+mod screen;
+mod dimension;
 
 use log::*;
 use terrain::*;
+use screen::*;
+use dimension::*;
 
 #[wasm_bindgen]
 
@@ -208,97 +211,14 @@ pub struct Simulation {
 }
 
 #[wasm_bindgen]
-#[derive(Debug, Clone)]
-pub struct Screen {
-    dimension: Dimension
-}
-
-#[wasm_bindgen]
-impl Screen {
-    #[wasm_bindgen(constructor)]
-    pub fn new(side_length: f32) -> Screen {
-        Screen { 
-            dimension: Dimension { side_length } 
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
-struct Dimension {
-    side_length: f32
-}
-
-fn map_screen_to_arena(screen: &Dimension, arena: &Dimension, point: Point2<Real>, default_y: Real) -> Vector<Real> {
-    let scale = arena.side_length / screen.side_length;
-    let x = point.x * scale;
-    let z = arena.side_length - (point.y * scale);
-    vector![x, default_y, z]
-}
-
-fn map_arena_to_screen(screen: &Dimension, arena: &Dimension, vector: Vector<Real>) -> Point2<Real> {
-    let scale = screen.side_length / arena.side_length;
-    let x = vector.x * scale;
-    let y = screen.side_length - (vector.z * scale);
-    Point2::new(x, y)
-}
-
-// #[wasm_bindgen]
-// #[derive(Debug, Clone)]
-// pub struct Ball {
-//     x: f32,
-//     y: f32
-// }
-
-// #[wasm_bindgen]
-// impl Ball {
-//     #[wasm_bindgen(constructor)]
-//     pub fn new(x: f32, y: f32) -> Ball {
-//         Ball { x, y }
-//     }
-
-//     #[wasm_bindgen(getter)]
-//     pub fn x(&self) -> f32 {
-//         self.x
-//     }
-
-//     #[wasm_bindgen(getter)]
-//     pub fn y(&self) -> f32 {
-//         self.y
-//     }
-
-//     fn as_point2(&self) -> Point2<Real> {
-//         Point2::new(self.x, self.y)
-//     }
-// }
-
-#[wasm_bindgen]
 impl Simulation {
     #[wasm_bindgen(constructor)]
     pub fn new(num_balls: u8, terrain: &Terrain, screen: &Screen) -> Simulation {
         let arena = Arena::new(50.0, num_balls, terrain);
         console_log!("Creating Simulation, with num_balls {:?}, using screen {:?}, terrain of {}x{}, and arena {:?}", 
             num_balls, screen, terrain.width, terrain.height, arena.dimension);
-        // let default_y = 10.0;
-        // let balls = Self::random_balls(num_balls, &screen);
-        // let arena_balls : Vec<Vector<Real>> = balls
-        //     .iter()
-        //     .map(|ball| screen.map_screen_to_arena(&arena, ball.as_point2(), default_y))
-        //     .collect();
-        // let state = RapierState::new(arena_balls, terrain, &arena);
         Simulation { screen: screen.clone(), arena }
     }
-
-    // fn random_balls(num_balls: u8, screen: &Screen) -> Vec<Ball> {
-    //     use js_sys::Math::random;
-    //     let mut balls = Vec::new();
-    //     for _ in 0 .. num_balls {
-    //         balls.push(Ball {
-    //             x: screen.side_length * (random() as f32),
-    //             y: screen.side_length * (random() as f32)
-    //         });
-    //     }
-    //     balls
-    // }
 
     pub fn set_force(&mut self, x: f32, y: f32) { 
         self.arena.physics.set_ball_force(x, y);
@@ -324,67 +244,5 @@ impl Simulation {
 
     pub fn update(&mut self, elapsed_since_last_update: u32) { 
         self.arena.physics.step(elapsed_since_last_update);
-        // let ball_arena_translations = self.state.ball_translations();
-        // for i in 0 .. ball_arena_translations.len() {
-        //     let ball_arena_translation = ball_arena_translations[i];
-        //     // console_log!("Ball position: {}", ball_arena_translation);
-        //     let ball_position = self.screen.map_arena_to_screen(&self.arena, ball_arena_translation.clone());
-        //     let mut ball = &mut self.balls[i];
-        //     ball.x = ball_position.x;
-        //     ball.y = ball_position.y;
-        // }
     }   
 }
-
-#[cfg(test)]
-mod mapping_tests {
-    use wasm_bindgen_test::*;
-    use super::*;
-
-    struct Context {
-        arena_dimension: Dimension,
-        screen_dimension: Dimension,
-        mappings: Vec<(Point2<Real>, Vector<Real>)>,
-        default_y: Real
-    }
-
-    fn context() -> Context {
-        let arena_dimension = Dimension {
-            side_length: 10.0
-        };
-        let screen_dimension = Dimension {
-            side_length: 100.0
-        };
-        let default_y = 0.123;
-        let mappings = vec![
-            (Point2::new(20.0, 20.0), vector![2.0, default_y, 8.0]),
-            (Point2::new(50.0, 50.0), vector![5.0, default_y, 5.0]),
-            (Point2::new(80.0, 80.0), vector![8.0, default_y, 2.0])
-        ];
-        Context {
-            arena_dimension, screen_dimension, mappings, default_y
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn test_map_screen_to_arena() {
-        let context = context();
-        for mapping in &context.mappings {
-            let (input, expected) = mapping;
-            let actual 
-                = map_screen_to_arena(&context.screen_dimension, &context.arena_dimension, *input, context.default_y);
-            assert_eq!(*expected, actual);
-        }
-    }
-
-    #[wasm_bindgen_test]
-    fn test_map_arena_to_screen() {
-        let context = context();
-        for mapping in &context.mappings {
-            let (expected, input) = mapping;
-            let actual = map_arena_to_screen(&context.screen_dimension, &context.arena_dimension, *input);
-            assert_eq!(*expected, actual);
-        }
-    }
-}
-

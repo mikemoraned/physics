@@ -47,6 +47,13 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+
 let WASM_VECTOR_LEN = 0;
 
 function passArray8ToWasm0(arg, malloc) {
@@ -69,13 +76,6 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-    return instance.ptr;
-}
-
 let stack_pointer = 32;
 
 function addBorrowedObject(obj) {
@@ -93,6 +93,42 @@ function handleError(f, args) {
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
+/**
+*/
+export class Dimension {
+
+    static __wrap(ptr) {
+        const obj = Object.create(Dimension.prototype);
+        obj.ptr = ptr;
+
+        return obj;
+    }
+
+    __destroy_into_raw() {
+        const ptr = this.ptr;
+        this.ptr = 0;
+
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_dimension_free(ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    get side_length() {
+        const ret = wasm.__wbg_get_dimension_side_length(this.ptr);
+        return ret;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set side_length(arg0) {
+        wasm.__wbg_set_dimension_side_length(this.ptr, arg0);
+    }
+}
 /**
 */
 export class RapierState {
@@ -137,6 +173,22 @@ export class Screen {
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_screen_free(ptr);
+    }
+    /**
+    * @returns {Dimension}
+    */
+    get dimension() {
+        const ret = wasm.__wbg_get_screen_dimension(this.ptr);
+        return Dimension.__wrap(ret);
+    }
+    /**
+    * @param {Dimension} arg0
+    */
+    set dimension(arg0) {
+        _assertClass(arg0, Dimension);
+        var ptr0 = arg0.ptr;
+        arg0.ptr = 0;
+        wasm.__wbg_set_screen_dimension(this.ptr, ptr0);
     }
     /**
     * @param {number} side_length
