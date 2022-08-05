@@ -17,6 +17,8 @@ macro_rules! console_log {
 
 #[wasm_bindgen]
 pub struct Terrain {
+    // elevations as stored in a matrix where
+    // x = columns, and y = rows
     elevations: DMatrix<Real>,
     width: usize,
     height: usize
@@ -33,7 +35,7 @@ impl Terrain {
         console_log!("read image");
 
         let elevations 
-            = DMatrix::from_fn(image.width() as usize, image.height() as usize, |x, y| {
+            = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
 
             let pixel = image.get_pixel(x as u32, y as u32);
             let (r, g, b) = (pixel[0] as f32, pixel[1] as f32, pixel[2] as f32);
@@ -446,4 +448,112 @@ mod mapping_tests {
             assert_eq!(*expected, actual);
         }
     }
+}
+
+#[cfg(test)]
+mod terrain_tests {
+    use image::{RgbImage, Rgb};
+    use std::io::Cursor;
+    use wasm_bindgen_test::*;
+    use super::*;
+
+    #[wasm_bindgen_test]
+    fn test_from_png_terrain_image() {
+
+        let width = 6u32;
+        let height = 6u32;
+
+        let num_rows = height as usize;
+        let num_columns = width as usize;
+        let expected_elevations = 
+            DMatrix::from_row_slice(num_rows, num_columns, &[
+                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
+                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
+                  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
+                  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
+                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
+                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
+            ]);
+        
+        // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
+        // elevation = -10
+        // invert:
+        // (-10 + 10000) / 0.1 = 99,900
+        // 99,900 / (256^2) = 1 remainder 34,364
+        // 34,364 / (256^1) = 134 remainder 60
+        // 60 / (256^0) = 60
+        let rgb1 = Rgb([1, 134, 60]);
+        // elevation = 0
+        // invert:
+        // (0 + 10000) / 0.1 = 100,000
+        // 100,000 / (256^2) = 1 remainder 34,464
+        // 34,464 / (256^1) = 134 remainder 160
+        // 160 / (256^0) = 160
+        let rgb2 = Rgb([1, 134, 160]);
+        // elevation = 5
+        // invert:
+        // (5 + 10000) / 0.1 = 100,050
+        // 100,050 / (256^2) = 1 remainder 34,514
+        // 34,514 / (256^1) = 134 remainder 210
+        // 210 / (256^0) = 210
+        let rgb3 = Rgb([1, 134, 210]);
+
+        let mut image_buffer: RgbImage 
+            = ImageBuffer::new(width, height);
+        
+        image_buffer.put_pixel(0, 0, rgb1);
+        image_buffer.put_pixel(1, 0, rgb1);
+        image_buffer.put_pixel(2, 0, rgb2);
+        image_buffer.put_pixel(3, 0, rgb2);
+        image_buffer.put_pixel(4, 0, rgb3);
+        image_buffer.put_pixel(5, 0, rgb3);
+
+        image_buffer.put_pixel(0, 1, rgb1);
+        image_buffer.put_pixel(1, 1, rgb1);
+        image_buffer.put_pixel(2, 1, rgb2);
+        image_buffer.put_pixel(3, 1, rgb2);
+        image_buffer.put_pixel(4, 1, rgb3);
+        image_buffer.put_pixel(5, 1, rgb3);
+
+        image_buffer.put_pixel(0, 2, rgb2);
+        image_buffer.put_pixel(1, 2, rgb2);
+        image_buffer.put_pixel(2, 2, rgb2);
+        image_buffer.put_pixel(3, 2, rgb2);
+        image_buffer.put_pixel(4, 2, rgb2);
+        image_buffer.put_pixel(5, 2, rgb2);
+
+        image_buffer.put_pixel(0, 3, rgb2);
+        image_buffer.put_pixel(1, 3, rgb2);
+        image_buffer.put_pixel(2, 3, rgb2);
+        image_buffer.put_pixel(3, 3, rgb2);
+        image_buffer.put_pixel(4, 3, rgb2);
+        image_buffer.put_pixel(5, 3, rgb2);
+
+        image_buffer.put_pixel(0, 4, rgb1);
+        image_buffer.put_pixel(1, 4, rgb1);
+        image_buffer.put_pixel(2, 4, rgb2);
+        image_buffer.put_pixel(3, 4, rgb2);
+        image_buffer.put_pixel(4, 4, rgb3);
+        image_buffer.put_pixel(5, 4, rgb3);
+
+        image_buffer.put_pixel(0, 5, rgb1);
+        image_buffer.put_pixel(1, 5, rgb1);
+        image_buffer.put_pixel(2, 5, rgb2);
+        image_buffer.put_pixel(3, 5, rgb2);
+        image_buffer.put_pixel(4, 5, rgb3);
+        image_buffer.put_pixel(5, 5, rgb3);
+
+        let image = DynamicImage::ImageRgb8(image_buffer);
+        let mut cursor = Cursor::new(Vec::new());
+        image.write_to(&mut cursor, image::ImageFormat::Png).unwrap();
+        let data : Vec<u8> = cursor.get_ref().to_owned();
+
+        let terrain = Terrain::from_png_terrain_image(data);
+
+        assert_eq!(width, terrain.width as u32);
+        assert_eq!(height, terrain.height as u32);
+        assert_eq!(expected_elevations, terrain.elevations);
+
+    }
+
 }
