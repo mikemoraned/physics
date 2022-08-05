@@ -131,29 +131,6 @@ export class Dimension {
 }
 /**
 */
-export class RapierState {
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_rapierstate_free(ptr);
-    }
-    /**
-    * @param {number} x
-    * @param {number} z
-    */
-    set_ball_force(x, z) {
-        wasm.rapierstate_set_ball_force(this.ptr, x, z);
-    }
-}
-/**
-*/
 export class Screen {
 
     static __wrap(ptr) {
@@ -236,7 +213,7 @@ export class Simulation {
     * @param {number} y
     */
     set_force(x, y) {
-        wasm.rapierstate_set_ball_force(this.ptr, x, y);
+        wasm.simulation_set_force(this.ptr, x, y);
     }
     /**
     * @param {Function} iter_fn
