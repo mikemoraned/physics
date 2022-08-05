@@ -20,7 +20,7 @@ impl Elevation for image::Rgba<u8> {
 pub struct Terrain {
     // elevations as stored in a matrix where
     // x = columns, y = rows, where x, y is in screen space
-    // i.e. x is left->right and y is top->bottom
+    // i.e. x goes from left->right and y goes from top->bottom
     elevations: DMatrix<Real>,
     pub width: usize,
     pub height: usize

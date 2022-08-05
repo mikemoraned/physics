@@ -59,20 +59,12 @@ impl RapierState {
 
         console_log!("Creating RapierState");
 
-        // let ball_radius = 0.01 * arena.side_length;
-
         let mut rigid_body_set = RigidBodySet::new();
         let mut collider_set = ColliderSet::new();
 
-        // let side_length = arena.side_length;
         let thickness = 0.1;
-        /* ground. */
-        let ground = ColliderBuilder::cuboid(side_length, thickness, side_length)
-            .translation(vector![0.0, -thickness, 0.0])
-            .build();
-        collider_set.insert(ground);
 
-        /* heightfield */
+        /* heightfield as ground */
         let height_y_extent = 100.0;
         let ground_size 
             = Vector::new(side_length, height_y_extent, side_length);
