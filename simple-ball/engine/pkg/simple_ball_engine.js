@@ -47,6 +47,21 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+
+let stack_pointer = 32;
+
+function addBorrowedObject(obj) {
+    if (stack_pointer == 1) throw new Error('out of js stack');
+    heap[--stack_pointer] = obj;
+    return stack_pointer;
+}
+
 let WASM_VECTOR_LEN = 0;
 
 function passArray8ToWasm0(arg, malloc) {
@@ -67,21 +82,6 @@ function getInt32Memory0() {
 
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
-}
-
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-    return instance.ptr;
-}
-
-let stack_pointer = 32;
-
-function addBorrowedObject(obj) {
-    if (stack_pointer == 1) throw new Error('out of js stack');
-    heap[--stack_pointer] = obj;
-    return stack_pointer;
 }
 
 function handleError(f, args) {
@@ -239,6 +239,32 @@ export class Terrain {
     free() {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_terrain_free(ptr);
+    }
+    /**
+    * @returns {number}
+    */
+    get width() {
+        const ret = wasm.__wbg_get_terrain_width(this.ptr);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set width(arg0) {
+        wasm.__wbg_set_terrain_width(this.ptr, arg0);
+    }
+    /**
+    * @returns {number}
+    */
+    get height() {
+        const ret = wasm.__wbg_get_terrain_height(this.ptr);
+        return ret >>> 0;
+    }
+    /**
+    * @param {number} arg0
+    */
+    set height(arg0) {
+        wasm.__wbg_set_terrain_height(this.ptr, arg0);
     }
     /**
     * @param {Uint8Array} data
