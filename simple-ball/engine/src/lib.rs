@@ -15,6 +15,18 @@ macro_rules! console_log {
     ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
 }
 
+trait Elevation {
+    fn to_elevation(&self) -> Real;
+}
+
+impl Elevation for image::Rgba<u8> {
+    fn to_elevation(&self) -> Real {
+        let (r, g, b) = (self[0] as f32, self[1] as f32, self[2] as f32);
+        let elevation = -10000.0 + ((r * 256.0 * 256.0 + g * 256.0 + b) * 0.1);
+        elevation
+    }
+}
+
 #[wasm_bindgen]
 pub struct Terrain {
     // elevations as stored in a matrix where
@@ -452,98 +464,118 @@ mod mapping_tests {
 
 #[cfg(test)]
 mod terrain_tests {
-    use image::{RgbImage, Rgb};
+    use image::{RgbImage, Rgb, Rgba, RgbaImage};
     use std::io::Cursor;
     use wasm_bindgen_test::*;
     use super::*;
 
+    struct ElevationMapping {
+        e: f32, 
+        p: image::Rgba<u8>
+    }
+
+    struct ElevationMappings {
+        m1: ElevationMapping,
+        m2: ElevationMapping,
+        m3: ElevationMapping,
+    }
+
+    fn elevation_mappings() -> ElevationMappings {
+        ElevationMappings {
+            // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
+            // elevation = -10
+            // invert:
+            // (-10 + 10000) / 0.1 = 99,900
+            // 99,900 / (256^2) = 1 remainder 34,364
+            // 34,364 / (256^1) = 134 remainder 60
+            // 60 / (256^0) = 60
+            m1: ElevationMapping{ e: -10.0, p: Rgba([1, 134, 60, u8::MAX]) },
+            // elevation = 0
+            // invert:
+            // (0 + 10000) / 0.1 = 100,000
+            // 100,000 / (256^2) = 1 remainder 34,464
+            // 34,464 / (256^1) = 134 remainder 160
+            // 160 / (256^0) = 160
+            m2: ElevationMapping{ e: 0.0, p: Rgba([1, 134, 160, u8::MAX]) },
+            // elevation = 5
+            // invert:
+            // (5 + 10000) / 0.1 = 100,050
+            // 100,050 / (256^2) = 1 remainder 34,514
+            // 34,514 / (256^1) = 134 remainder 210
+            // 210 / (256^0) = 210
+            m3: ElevationMapping{ e: 5.0, p: Rgba([1, 134, 210, u8::MAX]) },
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_to_elevation() {
+
+    }
+
     #[wasm_bindgen_test]
     fn test_from_png_terrain_image() {
-
         let width = 6u32;
         let height = 6u32;
 
         let num_rows = height as usize;
         let num_columns = width as usize;
+        let m = elevation_mappings();
         let expected_elevations = 
             DMatrix::from_row_slice(num_rows, num_columns, &[
-                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
-                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
-                  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
-                  0.0,   0.0,   0.0,   0.0,   0.0,   0.0,
-                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
-                -10.0, -10.0,   0.0,   0.0,   5.0,   5.0,
+                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
+                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
+                m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e,
+                m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e,
+                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
+                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
             ]);
-        
-        // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
-        // elevation = -10
-        // invert:
-        // (-10 + 10000) / 0.1 = 99,900
-        // 99,900 / (256^2) = 1 remainder 34,364
-        // 34,364 / (256^1) = 134 remainder 60
-        // 60 / (256^0) = 60
-        let rgb1 = Rgb([1, 134, 60]);
-        // elevation = 0
-        // invert:
-        // (0 + 10000) / 0.1 = 100,000
-        // 100,000 / (256^2) = 1 remainder 34,464
-        // 34,464 / (256^1) = 134 remainder 160
-        // 160 / (256^0) = 160
-        let rgb2 = Rgb([1, 134, 160]);
-        // elevation = 5
-        // invert:
-        // (5 + 10000) / 0.1 = 100,050
-        // 100,050 / (256^2) = 1 remainder 34,514
-        // 34,514 / (256^1) = 134 remainder 210
-        // 210 / (256^0) = 210
-        let rgb3 = Rgb([1, 134, 210]);
 
-        let mut image_buffer: RgbImage 
+        let mut image_buffer: RgbaImage 
             = ImageBuffer::new(width, height);
         
-        image_buffer.put_pixel(0, 0, rgb1);
-        image_buffer.put_pixel(1, 0, rgb1);
-        image_buffer.put_pixel(2, 0, rgb2);
-        image_buffer.put_pixel(3, 0, rgb2);
-        image_buffer.put_pixel(4, 0, rgb3);
-        image_buffer.put_pixel(5, 0, rgb3);
+        image_buffer.put_pixel(0, 0, m.m1.p);
+        image_buffer.put_pixel(1, 0, m.m1.p);
+        image_buffer.put_pixel(2, 0, m.m2.p);
+        image_buffer.put_pixel(3, 0, m.m2.p);
+        image_buffer.put_pixel(4, 0, m.m3.p);
+        image_buffer.put_pixel(5, 0, m.m3.p);
 
-        image_buffer.put_pixel(0, 1, rgb1);
-        image_buffer.put_pixel(1, 1, rgb1);
-        image_buffer.put_pixel(2, 1, rgb2);
-        image_buffer.put_pixel(3, 1, rgb2);
-        image_buffer.put_pixel(4, 1, rgb3);
-        image_buffer.put_pixel(5, 1, rgb3);
+        image_buffer.put_pixel(0, 1, m.m1.p);
+        image_buffer.put_pixel(1, 1, m.m1.p);
+        image_buffer.put_pixel(2, 1, m.m2.p);
+        image_buffer.put_pixel(3, 1, m.m2.p);
+        image_buffer.put_pixel(4, 1, m.m3.p);
+        image_buffer.put_pixel(5, 1, m.m3.p);
 
-        image_buffer.put_pixel(0, 2, rgb2);
-        image_buffer.put_pixel(1, 2, rgb2);
-        image_buffer.put_pixel(2, 2, rgb2);
-        image_buffer.put_pixel(3, 2, rgb2);
-        image_buffer.put_pixel(4, 2, rgb2);
-        image_buffer.put_pixel(5, 2, rgb2);
+        image_buffer.put_pixel(0, 2, m.m2.p);
+        image_buffer.put_pixel(1, 2, m.m2.p);
+        image_buffer.put_pixel(2, 2, m.m2.p);
+        image_buffer.put_pixel(3, 2, m.m2.p);
+        image_buffer.put_pixel(4, 2, m.m2.p);
+        image_buffer.put_pixel(5, 2, m.m2.p);
 
-        image_buffer.put_pixel(0, 3, rgb2);
-        image_buffer.put_pixel(1, 3, rgb2);
-        image_buffer.put_pixel(2, 3, rgb2);
-        image_buffer.put_pixel(3, 3, rgb2);
-        image_buffer.put_pixel(4, 3, rgb2);
-        image_buffer.put_pixel(5, 3, rgb2);
+        image_buffer.put_pixel(0, 3, m.m2.p);
+        image_buffer.put_pixel(1, 3, m.m2.p);
+        image_buffer.put_pixel(2, 3, m.m2.p);
+        image_buffer.put_pixel(3, 3, m.m2.p);
+        image_buffer.put_pixel(4, 3, m.m2.p);
+        image_buffer.put_pixel(5, 3, m.m2.p);
 
-        image_buffer.put_pixel(0, 4, rgb1);
-        image_buffer.put_pixel(1, 4, rgb1);
-        image_buffer.put_pixel(2, 4, rgb2);
-        image_buffer.put_pixel(3, 4, rgb2);
-        image_buffer.put_pixel(4, 4, rgb3);
-        image_buffer.put_pixel(5, 4, rgb3);
+        image_buffer.put_pixel(0, 4, m.m1.p);
+        image_buffer.put_pixel(1, 4, m.m1.p);
+        image_buffer.put_pixel(2, 4, m.m2.p);
+        image_buffer.put_pixel(3, 4, m.m2.p);
+        image_buffer.put_pixel(4, 4, m.m3.p);
+        image_buffer.put_pixel(5, 4, m.m3.p);
 
-        image_buffer.put_pixel(0, 5, rgb1);
-        image_buffer.put_pixel(1, 5, rgb1);
-        image_buffer.put_pixel(2, 5, rgb2);
-        image_buffer.put_pixel(3, 5, rgb2);
-        image_buffer.put_pixel(4, 5, rgb3);
-        image_buffer.put_pixel(5, 5, rgb3);
+        image_buffer.put_pixel(0, 5, m.m1.p);
+        image_buffer.put_pixel(1, 5, m.m1.p);
+        image_buffer.put_pixel(2, 5, m.m2.p);
+        image_buffer.put_pixel(3, 5, m.m2.p);
+        image_buffer.put_pixel(4, 5, m.m3.p);
+        image_buffer.put_pixel(5, 5, m.m3.p);
 
-        let image = DynamicImage::ImageRgb8(image_buffer);
+        let image = DynamicImage::ImageRgba8(image_buffer);
         let mut cursor = Cursor::new(Vec::new());
         image.write_to(&mut cursor, image::ImageFormat::Png).unwrap();
         let data : Vec<u8> = cursor.get_ref().to_owned();
