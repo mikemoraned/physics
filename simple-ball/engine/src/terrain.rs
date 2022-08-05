@@ -48,6 +48,10 @@ impl Terrain {
         }
     }
 
+    // pub fn simplify() -> Terrain {
+
+    // }
+
     pub fn as_grayscale_height_image(&self) -> Vec<u8> {
         use std::io::Cursor;
 
@@ -161,24 +165,43 @@ mod terrain_tests {
         }
     }
 
+    struct Examples {
+        terrain1: Terrain
+    }
+
+    impl Examples {
+        fn make() -> Examples {
+            let width = 6usize;
+            let height = 6usize;
+
+            let num_rows = height as usize;
+            let num_columns = width as usize;
+            let m = elevation_mappings();
+            let elevations = 
+                DMatrix::from_row_slice(num_rows, num_columns, &[
+                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                    m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                    m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                ]);
+
+            let terrain1 = Terrain {
+                elevations,
+                width,
+                height
+            };
+            Examples { terrain1 }
+        }
+    }
+
     #[wasm_bindgen_test]
     fn test_from_png_terrain_image() {
         let width = 6u32;
         let height = 6u32;
 
-        let num_rows = height as usize;
-        let num_columns = width as usize;
         let m = elevation_mappings();
-        let expected_elevations = 
-            DMatrix::from_row_slice(num_rows, num_columns, &[
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-            ]);
-
         let mut image_buffer: RgbaImage 
             = ImageBuffer::new(width, height);
         
@@ -229,12 +252,19 @@ mod terrain_tests {
         image.write_to(&mut cursor, image::ImageFormat::Png).unwrap();
         let data : Vec<u8> = cursor.get_ref().to_owned();
 
+        let examples = Examples::make();
+        let expected_terrain = examples.terrain1;
         let terrain = Terrain::from_png_terrain_image(data);
 
         assert_eq!(width, terrain.width as u32);
         assert_eq!(height, terrain.height as u32);
-        assert_eq!(expected_elevations, terrain.elevations);
+        assert_eq!(expected_terrain.elevations, terrain.elevations);
 
     }
+
+    // #[wasm_bindgen_test]
+    // fn test_simplify() {
+
+    // }
 
 }
