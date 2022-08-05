@@ -93,9 +93,9 @@ impl Terrain {
         let index_x_stride = (self.width - 1) / subdivisions;
         let index_y_stride = (self.height - 1) / subdivisions;
         DMatrix::from_fn(subdivisions, subdivisions, |i, j| {
-            let index_x = i * index_x_stride;
+            let index_x = j * index_x_stride;
             // let index_x = self.width - 1 - (i * index_x_stride);
-            let index_y = self.height - 1 - (j * index_y_stride);
+            let index_y = self.height - 1 - (i * index_y_stride);
             // let index_y = (j * index_y_stride);
             let elevation = self.elevations.index((index_x, index_y));
             (elevation - offset) * scale
