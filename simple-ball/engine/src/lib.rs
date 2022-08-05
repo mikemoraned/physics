@@ -404,7 +404,9 @@ mod tests {
 
     struct Context {
         scene: Scene,
-        view: View
+        view: View,
+        mappings: Vec<(Point2<Real>, Vector<Real>)>,
+        default_y: Real
     }
 
     fn context() -> Context {
@@ -414,29 +416,32 @@ mod tests {
         let view = View {
             side_length: 100.0
         };
+        let default_y = 0.123;
+        let mut mappings = Vec::new();
+        mappings.push((Point2::new(20.0, 20.0), vector![2.0, default_y, 8.0]));
         Context {
-            scene, view
+            scene, view, mappings, default_y
         }
     }
 
     #[wasm_bindgen_test]
     fn test_map_view_to_arena() {
         let context = context();
-        let input = Point2::new(20.0, 20.0);
-        let default_y = 0.123;
-        let expected = vector![2.0, default_y, 8.0];
-        let actual 
-            = context.scene.map_view_to_arena(&context.view, input, default_y);
-        assert_eq!(expected, actual);
+        for mapping in &context.mappings {
+            let (input, expected) = mapping;
+            let actual 
+                = context.scene.map_view_to_arena(&context.view, *input, context.default_y);
+            assert_eq!(*expected, actual);
+        }
     }
 
     #[wasm_bindgen_test]
     fn test_map_arena_to_view() {
         let context = context();
-        let default_y = 0.123;
-        let input = vector![2.0, default_y, 8.0];
-        let expected = Point2::new(20.0, 20.0);
-        let actual = context.scene.map_arena_to_view(&context.view, input);
-        assert_eq!(expected, actual);
+        for mapping in &context.mappings {
+            let (expected, input) = mapping;
+            let actual = context.scene.map_arena_to_view(&context.view, *input);
+            assert_eq!(*expected, actual);
+        }
     }
 }
