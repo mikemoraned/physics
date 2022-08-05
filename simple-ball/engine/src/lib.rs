@@ -48,11 +48,7 @@ impl Terrain {
 
         let elevations 
             = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
-
-            let pixel = image.get_pixel(x as u32, y as u32);
-            let (r, g, b) = (pixel[0] as f32, pixel[1] as f32, pixel[2] as f32);
-            let elevation = -10000.0 + ((r * 256.0 * 256.0 + g * 256.0 + b) * 0.1);
-            elevation
+                image.get_pixel(x as u32, y as u32).to_elevation()
         });
 
         Terrain { 
