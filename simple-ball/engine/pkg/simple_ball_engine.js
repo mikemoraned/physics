@@ -47,21 +47,6 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
 
-function _assertClass(instance, klass) {
-    if (!(instance instanceof klass)) {
-        throw new Error(`expected instance of ${klass.name}`);
-    }
-    return instance.ptr;
-}
-
-let stack_pointer = 32;
-
-function addBorrowedObject(obj) {
-    if (stack_pointer == 1) throw new Error('out of js stack');
-    heap[--stack_pointer] = obj;
-    return stack_pointer;
-}
-
 let WASM_VECTOR_LEN = 0;
 
 function passArray8ToWasm0(arg, malloc) {
@@ -84,6 +69,21 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
+function _assertClass(instance, klass) {
+    if (!(instance instanceof klass)) {
+        throw new Error(`expected instance of ${klass.name}`);
+    }
+    return instance.ptr;
+}
+
+let stack_pointer = 32;
+
+function addBorrowedObject(obj) {
+    if (stack_pointer == 1) throw new Error('out of js stack');
+    heap[--stack_pointer] = obj;
+    return stack_pointer;
+}
+
 function handleError(f, args) {
     try {
         return f.apply(this, args);
@@ -93,51 +93,6 @@ function handleError(f, args) {
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
-/**
-*/
-export class Ball {
-
-    static __wrap(ptr) {
-        const obj = Object.create(Ball.prototype);
-        obj.ptr = ptr;
-
-        return obj;
-    }
-
-    __destroy_into_raw() {
-        const ptr = this.ptr;
-        this.ptr = 0;
-
-        return ptr;
-    }
-
-    free() {
-        const ptr = this.__destroy_into_raw();
-        wasm.__wbg_ball_free(ptr);
-    }
-    /**
-    * @param {number} x
-    * @param {number} y
-    */
-    constructor(x, y) {
-        const ret = wasm.ball_new(x, y);
-        return Ball.__wrap(ret);
-    }
-    /**
-    * @returns {number}
-    */
-    get x() {
-        const ret = wasm.ball_x(this.ptr);
-        return ret;
-    }
-    /**
-    * @returns {number}
-    */
-    get y() {
-        const ret = wasm.ball_y(this.ptr);
-        return ret;
-    }
-}
 /**
 */
 export class RapierState {
