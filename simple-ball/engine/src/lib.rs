@@ -464,7 +464,7 @@ mod mapping_tests {
 
 #[cfg(test)]
 mod terrain_tests {
-    use image::{RgbImage, Rgb, Rgba, RgbaImage};
+    use image::{Rgba, RgbaImage};
     use std::io::Cursor;
     use wasm_bindgen_test::*;
     use super::*;
@@ -509,7 +509,14 @@ mod terrain_tests {
 
     #[wasm_bindgen_test]
     fn test_to_elevation() {
-
+        let m = elevation_mappings();
+        let examples = vec![m.m1, m.m2, m.m3];
+        for example in examples {
+            let expected = example.e;
+            let input = example.p;
+            let actual = input.to_elevation();
+            assert_eq!(expected, actual);
+        }
     }
 
     #[wasm_bindgen_test]
