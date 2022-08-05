@@ -398,7 +398,7 @@ impl Simulation {
 }
 
 #[cfg(test)]
-mod tests {
+mod mapping_tests {
     use wasm_bindgen_test::*;
     use super::*;
 
