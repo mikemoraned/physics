@@ -142,12 +142,13 @@ impl RapierState {
         }
     }
 
-    pub fn set_ball_force(&mut self, x: f32, z: f32) { 
+    pub fn set_ball_force(&mut self, x: f32, z: f32) {
+        let default_y = (x.abs() + z.abs()) / 2.0;
         for ball_body_handle in &self.ball_body_handles {
             let ball_body = self.rigid_body_set.get_mut(ball_body_handle.clone()).unwrap();
 
             ball_body.reset_forces(true);
-            ball_body.add_force(vector![x, 0.0, z], true);
+            ball_body.add_force(vector![x, default_y, z], true);
         }
     }
 
