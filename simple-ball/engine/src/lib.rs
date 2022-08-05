@@ -144,7 +144,6 @@ impl Scene {
 #[wasm_bindgen]
 impl RapierState {
     fn new(ball_translations: Vec<Vector<Real>>, terrain: &Terrain, scene: &Scene) -> RapierState {
-        use rapier3d::na::ComplexField;
 
         console_log!("Creating RapierState");
 
@@ -166,18 +165,6 @@ impl RapierState {
         let ground_size 
             = Vector::new(side_length, height_y_extent, side_length);
         let subdivisions : usize = 100;
-        // let heights 
-        //     = DMatrix::from_fn(subdivisions + 1, subdivisions + 1, |i, j| {
-        //     if i == 0 || i == subdivisions || j == 0 || j == subdivisions {
-        //         height_y_extent
-        //     } else {
-        //         let x = i as f32 * ground_size.x / (subdivisions as f32);
-        //         let z = j as f32 * ground_size.z / (subdivisions as f32);
-
-        //         (ComplexField::sin(x) + ComplexField::cos(z)) * ball_radius * 0.05
-        //     }
-        // });
-        // let max_heightfield = ball_radius * 0.05;
         let max_heightfield = ball_radius;
         let heights 
             = terrain.as_heightfield_heights(subdivisions, max_heightfield);
@@ -221,7 +208,6 @@ impl RapierState {
 
         /* Create other structures necessary for the simulation. */
         let gravity = vector![0.0, -9.81, 0.0];
-        // let integration_parameters = IntegrationParameters::default();
         let integration_parameters = IntegrationParameters { 
             dt: 1.0 / 1000.0, 
             ..Default::default()
@@ -416,33 +402,41 @@ mod tests {
     use wasm_bindgen_test::*;
     use super::*;
 
-    #[wasm_bindgen_test]
-    fn test_map_view_to_arena() {
+    struct Context {
+        scene: Scene,
+        view: View
+    }
+
+    fn context() -> Context {
         let scene = Scene {
             arena_side_length: 10.0
         };
         let view = View {
             side_length: 100.0
         };
+        Context {
+            scene, view
+        }
+    }
+
+    #[wasm_bindgen_test]
+    fn test_map_view_to_arena() {
+        let context = context();
         let input = Point2::new(20.0, 20.0);
         let default_y = 0.123;
         let expected = vector![2.0, default_y, 8.0];
-        let actual = scene.map_view_to_arena(&view, input, default_y);
+        let actual 
+            = context.scene.map_view_to_arena(&context.view, input, default_y);
         assert_eq!(expected, actual);
     }
 
     #[wasm_bindgen_test]
     fn test_map_arena_to_view() {
-        let scene = Scene {
-            arena_side_length: 10.0
-        };
-        let view = View {
-            side_length: 100.0
-        };
+        let context = context();
         let default_y = 0.123;
         let input = vector![2.0, default_y, 8.0];
         let expected = Point2::new(20.0, 20.0);
-        let actual = scene.map_arena_to_view(&view, input);
+        let actual = context.scene.map_arena_to_view(&context.view, input);
         assert_eq!(expected, actual);
     }
 }
