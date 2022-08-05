@@ -31,19 +31,7 @@ struct Arena {
 }
 
 impl Arena {
-    fn map_screen_to_arena(&self, screen: &Screen, point: Point2<Real>, default_y: Real) -> Vector<Real> {
-        let scale = self.side_length / screen.side_length;
-        let x = point.x * scale;
-        let z = self.side_length - (point.y * scale);
-        vector![x, default_y, z]
-    }
-
-    fn map_arena_to_screen(&self, screen: &Screen, vector: Vector<Real>) -> Point2<Real> {
-        let scale = screen.side_length / self.side_length;
-        let x = vector.x * scale;
-        let y = screen.side_length - (vector.z * scale);
-        Point2::new(x, y)
-    }
+    
 }
 
 #[wasm_bindgen]
@@ -209,6 +197,36 @@ impl Screen {
     pub fn new(side_length: f32) -> Screen {
         Screen { side_length }
     }
+
+    // fn map_screen_to_arena(&self, screen: &Screen, point: Point2<Real>, default_y: Real) -> Vector<Real> {
+    //     let scale = self.side_length / screen.side_length;
+    //     let x = point.x * scale;
+    //     let z = self.side_length - (point.y * scale);
+    //     vector![x, default_y, z]
+    // }
+
+    fn map_screen_to_arena(&self, arena: &Arena, point: Point2<Real>, default_y: Real) -> Vector<Real> {
+        let screen = self;
+        let scale = arena.side_length / screen.side_length;
+        let x = point.x * scale;
+        let z = arena.side_length - (point.y * scale);
+        vector![x, default_y, z]
+    }
+
+    // fn map_arena_to_screen(&self, screen: &Screen, vector: Vector<Real>) -> Point2<Real> {
+    //     let scale = screen.side_length / self.side_length;
+    //     let x = vector.x * scale;
+    //     let y = screen.side_length - (vector.z * scale);
+    //     Point2::new(x, y)
+    // }
+
+    fn map_arena_to_screen(&self, arena: &Arena, vector: Vector<Real>) -> Point2<Real> {
+        let screen = self;
+        let scale = screen.side_length / arena.side_length;
+        let x = vector.x * scale;
+        let y = screen.side_length - (vector.z * scale);
+        Point2::new(x, y)
+    }
 }
 
 #[wasm_bindgen]
@@ -253,7 +271,7 @@ impl Simulation {
         let balls = Self::random_balls(num_balls, &screen);
         let arena_balls : Vec<Vector<Real>> = balls
             .iter()
-            .map(|ball| arena.map_screen_to_arena(&screen, ball.as_point2(), default_y))
+            .map(|ball| screen.map_screen_to_arena(&arena, ball.as_point2(), default_y))
             .collect();
         let state = RapierState::new(arena_balls, terrain, &arena);
         Simulation { state, screen: screen.clone(), arena, balls }
@@ -277,7 +295,7 @@ impl Simulation {
 
     pub fn iter_ball_positions(&self, iter_fn: &js_sys::Function) {
         let arena_ball_radius = self.state.ball_radius();
-        let p = self.arena.map_arena_to_screen(&self.screen, vector![arena_ball_radius, arena_ball_radius, arena_ball_radius]);
+        let p = self.screen.map_arena_to_screen(&self.arena, vector![arena_ball_radius, arena_ball_radius, arena_ball_radius]);
         let ball_radius = p.x;
         for ball in &self.balls {
             let this = JsValue::null();
@@ -294,7 +312,7 @@ impl Simulation {
         for i in 0 .. ball_arena_translations.len() {
             let ball_arena_translation = ball_arena_translations[i];
             // console_log!("Ball position: {}", ball_arena_translation);
-            let ball_position = self.arena.map_arena_to_screen(&self.screen, ball_arena_translation.clone());
+            let ball_position = self.screen.map_arena_to_screen(&self.arena, ball_arena_translation.clone());
             let mut ball = &mut self.balls[i];
             ball.x = ball_position.x;
             ball.y = ball_position.y;
@@ -338,7 +356,7 @@ mod mapping_tests {
         for mapping in &context.mappings {
             let (input, expected) = mapping;
             let actual 
-                = context.arena.map_screen_to_arena(&context.screen, *input, context.default_y);
+                = context.screen.map_screen_to_arena(&context.arena, *input, context.default_y);
             assert_eq!(*expected, actual);
         }
     }
@@ -348,7 +366,7 @@ mod mapping_tests {
         let context = context();
         for mapping in &context.mappings {
             let (expected, input) = mapping;
-            let actual = context.arena.map_arena_to_screen(&context.screen, *input);
+            let actual = context.screen.map_arena_to_screen(&context.arena, *input);
             assert_eq!(*expected, actual);
         }
     }
