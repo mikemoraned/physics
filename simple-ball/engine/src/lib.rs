@@ -3,17 +3,9 @@ use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
 use nalgebra::Point2;
 
-#[wasm_bindgen]
-extern "C" {
-    #[wasm_bindgen(js_namespace = console)]
-    fn log(s: &str);
-}
+mod log;
 
-macro_rules! console_log {
-    // Note that this is using the `log` function imported above during
-    // `bare_bones`
-    ($($t:tt)*) => (log(&format_args!($($t)*).to_string()))
-}
+use log::*;
 
 trait Elevation {
     fn to_elevation(&self) -> Real;
@@ -30,7 +22,8 @@ impl Elevation for image::Rgba<u8> {
 #[wasm_bindgen]
 pub struct Terrain {
     // elevations as stored in a matrix where
-    // x = columns, and y = rows
+    // x = columns, y = rows, where x, y is in screen space
+    // i.e. x is left->right and y is top->bottom
     elevations: DMatrix<Real>,
     width: usize,
     height: usize
