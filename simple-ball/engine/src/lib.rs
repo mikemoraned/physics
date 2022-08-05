@@ -470,10 +470,11 @@ mod terrain_tests {
         p: image::Rgba<u8>
     }
 
+    #[allow(non_snake_case)]
     struct ElevationMappings {
-        m1: ElevationMapping,
-        m2: ElevationMapping,
-        m3: ElevationMapping,
+        A: ElevationMapping,
+        B: ElevationMapping,
+        C: ElevationMapping,
     }
 
     fn elevation_mappings() -> ElevationMappings {
@@ -485,28 +486,28 @@ mod terrain_tests {
             // 99,900 / (256^2) = 1 remainder 34,364
             // 34,364 / (256^1) = 134 remainder 60
             // 60 / (256^0) = 60
-            m1: ElevationMapping{ e: -10.0, p: Rgba([1, 134, 60, u8::MAX]) },
+            A: ElevationMapping{ e: -10.0, p: Rgba([1, 134, 60, u8::MAX]) },
             // elevation = 0
             // invert:
             // (0 + 10000) / 0.1 = 100,000
             // 100,000 / (256^2) = 1 remainder 34,464
             // 34,464 / (256^1) = 134 remainder 160
             // 160 / (256^0) = 160
-            m2: ElevationMapping{ e: 0.0, p: Rgba([1, 134, 160, u8::MAX]) },
+            B: ElevationMapping{ e: 0.0, p: Rgba([1, 134, 160, u8::MAX]) },
             // elevation = 5
             // invert:
             // (5 + 10000) / 0.1 = 100,050
             // 100,050 / (256^2) = 1 remainder 34,514
             // 34,514 / (256^1) = 134 remainder 210
             // 210 / (256^0) = 210
-            m3: ElevationMapping{ e: 5.0, p: Rgba([1, 134, 210, u8::MAX]) },
+            C: ElevationMapping{ e: 5.0, p: Rgba([1, 134, 210, u8::MAX]) },
         }
     }
 
     #[wasm_bindgen_test]
     fn test_to_elevation() {
         let m = elevation_mappings();
-        let examples = vec![m.m1, m.m2, m.m3];
+        let examples = vec![m.A, m.B, m.C];
         for example in examples {
             let expected = example.e;
             let input = example.p;
@@ -525,58 +526,58 @@ mod terrain_tests {
         let m = elevation_mappings();
         let expected_elevations = 
             DMatrix::from_row_slice(num_rows, num_columns, &[
-                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
-                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
-                m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e,
-                m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e, m.m2.e,
-                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
-                m.m1.e, m.m1.e, m.m2.e, m.m2.e, m.m3.e, m.m3.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
             ]);
 
         let mut image_buffer: RgbaImage 
             = ImageBuffer::new(width, height);
         
-        image_buffer.put_pixel(0, 0, m.m1.p);
-        image_buffer.put_pixel(1, 0, m.m1.p);
-        image_buffer.put_pixel(2, 0, m.m2.p);
-        image_buffer.put_pixel(3, 0, m.m2.p);
-        image_buffer.put_pixel(4, 0, m.m3.p);
-        image_buffer.put_pixel(5, 0, m.m3.p);
+        image_buffer.put_pixel(0, 0, m.A.p);
+        image_buffer.put_pixel(1, 0, m.A.p);
+        image_buffer.put_pixel(2, 0, m.B.p);
+        image_buffer.put_pixel(3, 0, m.B.p);
+        image_buffer.put_pixel(4, 0, m.C.p);
+        image_buffer.put_pixel(5, 0, m.C.p);
 
-        image_buffer.put_pixel(0, 1, m.m1.p);
-        image_buffer.put_pixel(1, 1, m.m1.p);
-        image_buffer.put_pixel(2, 1, m.m2.p);
-        image_buffer.put_pixel(3, 1, m.m2.p);
-        image_buffer.put_pixel(4, 1, m.m3.p);
-        image_buffer.put_pixel(5, 1, m.m3.p);
+        image_buffer.put_pixel(0, 1, m.A.p);
+        image_buffer.put_pixel(1, 1, m.A.p);
+        image_buffer.put_pixel(2, 1, m.B.p);
+        image_buffer.put_pixel(3, 1, m.B.p);
+        image_buffer.put_pixel(4, 1, m.C.p);
+        image_buffer.put_pixel(5, 1, m.C.p);
 
-        image_buffer.put_pixel(0, 2, m.m2.p);
-        image_buffer.put_pixel(1, 2, m.m2.p);
-        image_buffer.put_pixel(2, 2, m.m2.p);
-        image_buffer.put_pixel(3, 2, m.m2.p);
-        image_buffer.put_pixel(4, 2, m.m2.p);
-        image_buffer.put_pixel(5, 2, m.m2.p);
+        image_buffer.put_pixel(0, 2, m.B.p);
+        image_buffer.put_pixel(1, 2, m.B.p);
+        image_buffer.put_pixel(2, 2, m.B.p);
+        image_buffer.put_pixel(3, 2, m.B.p);
+        image_buffer.put_pixel(4, 2, m.B.p);
+        image_buffer.put_pixel(5, 2, m.B.p);
 
-        image_buffer.put_pixel(0, 3, m.m2.p);
-        image_buffer.put_pixel(1, 3, m.m2.p);
-        image_buffer.put_pixel(2, 3, m.m2.p);
-        image_buffer.put_pixel(3, 3, m.m2.p);
-        image_buffer.put_pixel(4, 3, m.m2.p);
-        image_buffer.put_pixel(5, 3, m.m2.p);
+        image_buffer.put_pixel(0, 3, m.B.p);
+        image_buffer.put_pixel(1, 3, m.B.p);
+        image_buffer.put_pixel(2, 3, m.B.p);
+        image_buffer.put_pixel(3, 3, m.B.p);
+        image_buffer.put_pixel(4, 3, m.B.p);
+        image_buffer.put_pixel(5, 3, m.B.p);
 
-        image_buffer.put_pixel(0, 4, m.m1.p);
-        image_buffer.put_pixel(1, 4, m.m1.p);
-        image_buffer.put_pixel(2, 4, m.m2.p);
-        image_buffer.put_pixel(3, 4, m.m2.p);
-        image_buffer.put_pixel(4, 4, m.m3.p);
-        image_buffer.put_pixel(5, 4, m.m3.p);
+        image_buffer.put_pixel(0, 4, m.A.p);
+        image_buffer.put_pixel(1, 4, m.A.p);
+        image_buffer.put_pixel(2, 4, m.B.p);
+        image_buffer.put_pixel(3, 4, m.B.p);
+        image_buffer.put_pixel(4, 4, m.C.p);
+        image_buffer.put_pixel(5, 4, m.C.p);
 
-        image_buffer.put_pixel(0, 5, m.m1.p);
-        image_buffer.put_pixel(1, 5, m.m1.p);
-        image_buffer.put_pixel(2, 5, m.m2.p);
-        image_buffer.put_pixel(3, 5, m.m2.p);
-        image_buffer.put_pixel(4, 5, m.m3.p);
-        image_buffer.put_pixel(5, 5, m.m3.p);
+        image_buffer.put_pixel(0, 5, m.A.p);
+        image_buffer.put_pixel(1, 5, m.A.p);
+        image_buffer.put_pixel(2, 5, m.B.p);
+        image_buffer.put_pixel(3, 5, m.B.p);
+        image_buffer.put_pixel(4, 5, m.C.p);
+        image_buffer.put_pixel(5, 5, m.C.p);
 
         let image = DynamicImage::ImageRgba8(image_buffer);
         let mut cursor = Cursor::new(Vec::new());
