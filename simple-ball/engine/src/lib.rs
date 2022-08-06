@@ -63,7 +63,7 @@ impl Simulation {
     }
 
     pub fn update(&mut self, elapsed_since_last_update: u32) {
-        let max_milliseconds = 1000 / 60;
+        let max_milliseconds = 200;
         self.arena.physics.step(elapsed_since_last_update, &self.performance, max_milliseconds);
     }   
 }
