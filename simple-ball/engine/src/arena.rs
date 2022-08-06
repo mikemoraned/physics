@@ -1,5 +1,6 @@
 
 use rapier3d::prelude::*;
+use web_sys::Performance;
 
 use crate::log::*;
 use crate::terrain::*;
@@ -165,11 +166,15 @@ impl RapierState {
         self.ball_radius
     }
 
-    pub fn step(&mut self, steps: u32) {
+    pub fn step(&mut self, steps: u32, performance: &Performance, max_milliseconds: u32) {
         let physics_hooks = ();
         let event_handler = ();
 
-        for _ in 0..steps {
+        let start_time = performance.now();
+        let mut end_time_of_last_step = start_time;
+        let max_time = start_time + (max_milliseconds as f64);
+        let mut steps_remaining = steps;
+        while steps_remaining > 0 && end_time_of_last_step < max_time {
             self.physics_pipeline.step(
                 &self.gravity,
                 &self.integration_parameters,
@@ -184,6 +189,8 @@ impl RapierState {
                 &physics_hooks,
                 &event_handler,
             );
+            steps_remaining -= 1;
+            end_time_of_last_step = performance.now();
         }
     }
 }

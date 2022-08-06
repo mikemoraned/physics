@@ -222,9 +222,9 @@ async function app() {
   const terrainBitmap = await createImageBitmap(terrainBlob);
   const terrainBuffer = new Uint8Array(await terrainBlob.arrayBuffer());
   const terrain = Terrain.from_png_terrain_image(terrainBuffer)
-    .halfed()
-    .halfed()
-    .halfed()
+    // .halfed()
+    // .halfed()
+    // .halfed()
     .halfed()
     .halfed()
     .halfed();
