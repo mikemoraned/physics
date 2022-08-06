@@ -48,9 +48,21 @@ impl Terrain {
         }
     }
 
-    // pub fn simplify() -> Terrain {
-
-    // }
+    pub fn halfed(&self) -> Terrain {
+        Terrain { 
+            elevations: DMatrix::from_fn(self.height / 2, self.width / 2, |i, j| {
+                let stride = 2;
+                let start = (i * stride, j * stride);
+                let shape = (stride, stride);
+                let slice 
+                    = self.elevations.slice(start, shape);
+                let avg = slice.sum() / (slice.len() as Real);
+                avg
+            }),
+            width: self.width / 2,
+            height: self.height / 2
+        }
+    }
 
     pub fn as_grayscale_height_image(&self) -> Vec<u8> {
         use std::io::Cursor;
@@ -165,34 +177,42 @@ mod terrain_tests {
         }
     }
 
-    struct Examples {
-        terrain1: Terrain
+    fn example_terrain() -> Terrain {
+        let height = 6usize;
+        let width = 6usize;
+        let m = elevation_mappings();
+        let elevations = 
+            DMatrix::from_row_slice(height, width, &[
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+            ]);
+
+        Terrain {
+            elevations,
+            width,
+            height
+        }
     }
 
-    impl Examples {
-        fn make() -> Examples {
-            let width = 6usize;
-            let height = 6usize;
+    fn halfed_terrain() -> Terrain {
+        let height = 3usize;
+        let width = 3usize;
+        let m = elevation_mappings();
+        let elevations = 
+            DMatrix::from_row_slice(height, width, &[
+                m.A.e, m.B.e, m.C.e,
+                m.B.e, m.B.e, m.B.e,
+                m.A.e, m.B.e, m.C.e,
+            ]);
 
-            let num_rows = height as usize;
-            let num_columns = width as usize;
-            let m = elevation_mappings();
-            let elevations = 
-                DMatrix::from_row_slice(num_rows, num_columns, &[
-                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                    m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                    m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                    m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                ]);
-
-            let terrain1 = Terrain {
-                elevations,
-                width,
-                height
-            };
-            Examples { terrain1 }
+        Terrain {
+            elevations,
+            width,
+            height
         }
     }
 
@@ -252,8 +272,7 @@ mod terrain_tests {
         image.write_to(&mut cursor, image::ImageFormat::Png).unwrap();
         let data : Vec<u8> = cursor.get_ref().to_owned();
 
-        let examples = Examples::make();
-        let expected_terrain = examples.terrain1;
+        let expected_terrain = example_terrain();
         let terrain = Terrain::from_png_terrain_image(data);
 
         assert_eq!(width, terrain.width as u32);
@@ -262,9 +281,15 @@ mod terrain_tests {
 
     }
 
-    // #[wasm_bindgen_test]
-    // fn test_simplify() {
+    #[wasm_bindgen_test]
+    fn test_halfed() {
+        let initial = example_terrain();
+        let expected = halfed_terrain();
+        let actual = initial.halfed();
 
-    // }
+        assert_eq!(expected.width, actual.width);
+        assert_eq!(expected.height, actual.height);
+        assert_eq!(expected.elevations, actual.elevations);
+    }
 
 }
