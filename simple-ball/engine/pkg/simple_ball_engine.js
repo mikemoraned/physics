@@ -54,6 +54,14 @@ function _assertClass(instance, klass) {
     return instance.ptr;
 }
 
+let stack_pointer = 32;
+
+function addBorrowedObject(obj) {
+    if (stack_pointer == 1) throw new Error('out of js stack');
+    heap[--stack_pointer] = obj;
+    return stack_pointer;
+}
+
 let WASM_VECTOR_LEN = 0;
 
 function passArray8ToWasm0(arg, malloc) {
@@ -74,14 +82,6 @@ function getInt32Memory0() {
 
 function getArrayU8FromWasm0(ptr, len) {
     return getUint8Memory0().subarray(ptr / 1, ptr / 1 + len);
-}
-
-let stack_pointer = 32;
-
-function addBorrowedObject(obj) {
-    if (stack_pointer == 1) throw new Error('out of js stack');
-    heap[--stack_pointer] = obj;
-    return stack_pointer;
 }
 
 function handleError(f, args) {
@@ -288,6 +288,13 @@ export class Terrain {
         const ptr0 = passArray8ToWasm0(data, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ret = wasm.terrain_from_png_terrain_image(ptr0, len0);
+        return Terrain.__wrap(ret);
+    }
+    /**
+    * @returns {Terrain}
+    */
+    halfed() {
+        const ret = wasm.terrain_halfed(this.ptr);
         return Terrain.__wrap(ret);
     }
     /**
