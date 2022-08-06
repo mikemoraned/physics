@@ -30,7 +30,7 @@ pub struct Arena {
 
 impl Arena {
     pub fn new(side_length: f32, num_balls: u8, terrain: &Terrain) -> Arena {
-        let default_y = 10.0;
+        let default_y = 100.0;
         let balls = Self::random_balls(num_balls, side_length, default_y);
         let ball_radius = 0.01 * side_length;
         let physics = RapierState::new(balls, ball_radius, side_length, terrain);
@@ -65,13 +65,11 @@ impl RapierState {
         let thickness = 0.1;
 
         /* heightfield as ground */
-        let height_y_extent = 100.0;
+        let height_y_extent = ball_radius * 2.0 * 2.0;
         let ground_size 
             = Vector::new(side_length, height_y_extent, side_length);
-        let subdivisions : usize = 100;
-        let max_heightfield = ball_radius;
         let heights 
-            = terrain.as_heightfield_heights(subdivisions, max_heightfield);
+            = terrain.as_xz_heightfield(1.0);
         let heightfield = ColliderBuilder::heightfield(heights, ground_size)
             .translation(vector![0.5 * side_length, 0.0, 0.5 * side_length])
             .build();
@@ -148,6 +146,8 @@ impl RapierState {
             let ball_body = self.rigid_body_set.get_mut(ball_body_handle.clone()).unwrap();
 
             ball_body.reset_forces(true);
+            // ball_body.enable_ccd(true);
+            // console_log!("{}", ball_body.is_ccd_active());
             ball_body.add_force(vector![x, default_y, z], true);
         }
     }

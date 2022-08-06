@@ -226,6 +226,7 @@ async function app() {
     .halfed()
     .halfed()
     .halfed()
+    .halfed()
     .halfed();
   const grayscaleHeightBuffer = terrain.as_grayscale_height_image();
   const grayscaleHeightBlob = new Blob([grayscaleHeightBuffer], {
