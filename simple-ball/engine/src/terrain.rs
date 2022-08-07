@@ -54,10 +54,6 @@ impl Terrain {
                 let y = row as u32;
                 image.get_pixel(x as u32, y as u32).to_elevation()
         });
-        // let elevations 
-        //     = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
-        //         image.get_pixel(x as u32, y as u32).to_elevation()
-        // });
 
         Terrain { 
             elevations, 
@@ -140,7 +136,6 @@ mod terrain_tests {
     use rapier3d::na::dmatrix;
     use std::io::Cursor;
     use wasm_bindgen_test::*;
-    use crate::terrain::terrain_tests::examples::terrain_as_picture;
 
     use super::*;
 
@@ -150,8 +145,7 @@ mod terrain_tests {
     }
 
     mod examples {
-        use image::{Rgba, GenericImageView};
-        use crate::terrain::Terrain;
+        use image::Rgba;
 
         use super::ElevationMapping;
 
@@ -184,19 +178,6 @@ mod terrain_tests {
         // 34,964 / (256^1) = 136 remainder 148
         // 148 / (256^0) = 148
         pub const D: ElevationMapping = ElevationMapping{ e: 50.0, p: Rgba([1, 136, 148, u8::MAX]) };
-    
-        pub fn terrain_as_picture(terrain: &Terrain) -> String {
-            let mut buf = vec![];
-            for y in 0..terrain.height {
-                let mut line = vec![];
-                for x in 0..terrain.width {
-                    let e = terrain.elevations.index((x, y));
-                    line.push(format!("{}", e));
-                }
-                buf.push(line.join(","));
-            }
-            buf.join(";")
-        }
     }
 
     #[wasm_bindgen_test]
@@ -218,14 +199,6 @@ mod terrain_tests {
         let height = 6usize;
         let width = 6usize;
         let elevations = 
-        // DMatrix::from_rows(&[
-        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, C.e, C.e ]),
-        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, C.e, C.e ]),
-        //     RowDVector::from_row_slice(&[B.e, B.e, B.e, B.e, B.e, B.e ]),
-        //     RowDVector::from_row_slice(&[B.e, B.e, B.e, B.e, B.e, B.e ]),
-        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, D.e, D.e ]),
-        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, D.e, D.e ])
-        // ]);
         nalgebra::dmatrix![
             A.e, A.e, B.e, B.e, C.e, C.e;
             A.e, A.e, B.e, B.e, C.e, C.e;
@@ -248,16 +221,11 @@ mod terrain_tests {
         let height = 3usize;
         let width = 3usize;
         let elevations = 
-            // DMatrix::from_rows(&[
-            //     RowDVector::from_row_slice(&[A.e, B.e, C.e]),
-            //     RowDVector::from_row_slice(&[B.e, B.e, B.e]),
-            //     RowDVector::from_row_slice(&[A.e, B.e, D.e]),
-            // ]);
-        nalgebra::dmatrix![
-            A.e, B.e, C.e;
-            B.e, B.e, B.e;
-            A.e, B.e, D.e;
-        ];
+            nalgebra::dmatrix![
+                A.e, B.e, C.e;
+                B.e, B.e, B.e;
+                A.e, B.e, D.e;
+            ];
 
         Terrain {
             elevations,
@@ -279,59 +247,14 @@ mod terrain_tests {
         let width = 6u32;
         let height = 6u32;
 
-        let mut image_buffer: RgbaImage 
-            = ImageBuffer::new(width, height);
-
-        // let image_buffer: RgbaImage = ImageBuffer::from_vec(width, height, subpixels(&[
-        //     A.p, A.p, B.p, B.p, C.p, C.p,
-        //     A.p, A.p, B.p, B.p, C.p, C.p,
-        //     B.p, B.p, B.p, B.p, B.p, B.p,
-        //     B.p, B.p, B.p, B.p, B.p, B.p,
-        //     A.p, A.p, B.p, B.p, D.p, D.p,
-        //     A.p, A.p, B.p, B.p, D.p, D.p
-        // ])).unwrap();
-        
-        image_buffer.put_pixel(0, 0, A.p);
-        image_buffer.put_pixel(1, 0, A.p);
-        image_buffer.put_pixel(2, 0, B.p);
-        image_buffer.put_pixel(3, 0, B.p);
-        image_buffer.put_pixel(4, 0, C.p);
-        image_buffer.put_pixel(5, 0, C.p);
-
-        image_buffer.put_pixel(0, 1, A.p);
-        image_buffer.put_pixel(1, 1, A.p);
-        image_buffer.put_pixel(2, 1, B.p);
-        image_buffer.put_pixel(3, 1, B.p);
-        image_buffer.put_pixel(4, 1, C.p);
-        image_buffer.put_pixel(5, 1, C.p);
-
-        image_buffer.put_pixel(0, 2, B.p);
-        image_buffer.put_pixel(1, 2, B.p);
-        image_buffer.put_pixel(2, 2, B.p);
-        image_buffer.put_pixel(3, 2, B.p);
-        image_buffer.put_pixel(4, 2, B.p);
-        image_buffer.put_pixel(5, 2, B.p);
-
-        image_buffer.put_pixel(0, 3, B.p);
-        image_buffer.put_pixel(1, 3, B.p);
-        image_buffer.put_pixel(2, 3, B.p);
-        image_buffer.put_pixel(3, 3, B.p);
-        image_buffer.put_pixel(4, 3, B.p);
-        image_buffer.put_pixel(5, 3, B.p);
-
-        image_buffer.put_pixel(0, 4, A.p);
-        image_buffer.put_pixel(1, 4, A.p);
-        image_buffer.put_pixel(2, 4, B.p);
-        image_buffer.put_pixel(3, 4, B.p);
-        image_buffer.put_pixel(4, 4, D.p);
-        image_buffer.put_pixel(5, 4, D.p);
-
-        image_buffer.put_pixel(0, 5, A.p);
-        image_buffer.put_pixel(1, 5, A.p);
-        image_buffer.put_pixel(2, 5, B.p);
-        image_buffer.put_pixel(3, 5, B.p);
-        image_buffer.put_pixel(4, 5, D.p);
-        image_buffer.put_pixel(5, 5, D.p);
+        let image_buffer: RgbaImage = ImageBuffer::from_vec(width, height, subpixels(&[
+            A.p, A.p, B.p, B.p, C.p, C.p,
+            A.p, A.p, B.p, B.p, C.p, C.p,
+            B.p, B.p, B.p, B.p, B.p, B.p,
+            B.p, B.p, B.p, B.p, B.p, B.p,
+            A.p, A.p, B.p, B.p, D.p, D.p,
+            A.p, A.p, B.p, B.p, D.p, D.p
+        ])).unwrap();
 
         let image = DynamicImage::ImageRgba8(image_buffer);
         let mut cursor = Cursor::new(Vec::new());
@@ -343,10 +266,7 @@ mod terrain_tests {
 
         assert_eq!(width, terrain.width as u32);
         assert_eq!(height, terrain.height as u32);
-        assert_eq!(
-            terrain_as_picture(&expected_terrain), 
-            terrain_as_picture(&terrain)
-        );
+        assert_eq!(expected_terrain.elevations, terrain.elevations);
 
     }
 
@@ -358,9 +278,7 @@ mod terrain_tests {
 
         assert_eq!(expected.width, actual.width);
         assert_eq!(expected.height, actual.height);
-        assert_eq!(
-            terrain_as_picture(&expected), 
-            terrain_as_picture(&actual));
+        assert_eq!(expected.elevations, actual.elevations);
     }
 
     #[wasm_bindgen_test]
