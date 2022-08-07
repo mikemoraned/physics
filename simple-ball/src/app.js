@@ -204,7 +204,8 @@ function draw(sim, sensorModel, terrain, canvas) {
 }
 
 async function loadTerrainBlob() {
-  const terrain_path = "./src/data/test4.png";
+  const terrain_path =
+    "./src/data/guide-access-elevation-data-example-response-960-5d3c885c50fbb3feea782f36bf241b87.png";
   const response = await fetch(terrain_path);
   console.log(response);
   const blob = await response.blob();
