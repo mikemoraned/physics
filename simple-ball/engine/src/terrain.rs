@@ -26,6 +26,16 @@ pub struct Terrain {
     pub height: usize
 }
 
+impl Terrain {
+    pub fn rows(&self) -> usize {
+        self.height
+    }
+
+    pub fn columns(&self) -> usize {
+        self.width
+    }
+}
+
 #[wasm_bindgen]
 impl Terrain {
     pub fn from_png_terrain_image(data: Vec<u8>) -> Terrain {
@@ -36,14 +46,18 @@ impl Terrain {
         let image = result.unwrap();
         console_log!("read image");
 
-        // let elevations 
-        //     = DMatrix::from_fn(image.width() as usize, image.height() as usize, |x, y| {
-        //         image.get_pixel(x as u32, y as u32).to_elevation()
-        // });
+        let rows = image.height() as usize;
+        let columns = image.width() as usize;
         let elevations 
-            = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
+            = DMatrix::from_fn(rows, columns, |row, column| {
+                let x = column as u32;
+                let y = row as u32;
                 image.get_pixel(x as u32, y as u32).to_elevation()
         });
+        // let elevations 
+        //     = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
+        //         image.get_pixel(x as u32, y as u32).to_elevation()
+        // });
 
         Terrain { 
             elevations, 
@@ -54,9 +68,9 @@ impl Terrain {
 
     pub fn halfed(&self) -> Terrain {
         Terrain { 
-            elevations: DMatrix::from_fn(self.height / 2, self.width / 2, |i, j| {
+            elevations: DMatrix::from_fn(self.rows() / 2, self.columns() / 2, |row, column| {
                 let stride = 2;
-                let start = (i * stride, j * stride);
+                let start = (row * stride, column * stride);
                 let shape = (stride, stride);
                 let slice 
                     = self.elevations.slice(start, shape);
@@ -80,7 +94,9 @@ impl Terrain {
 
         let image_buffer 
             = ImageBuffer::from_fn(self.width as u32, self.height as u32, |x, y| {
-            let elevation = self.elevations.index((x as usize, y as usize));
+            let row = y as usize;
+            let column = x as usize;
+            let elevation = self.elevations.index((row as usize, column as usize));
             let luma = ((elevation - offset) * scale) as u16;
             image::Luma([luma])
         });
@@ -110,10 +126,9 @@ impl Terrain {
         let scale = max_value / range;
         let offset = min;
 
-        DMatrix::from_fn(self.height, self.width, |z, x| {
-            let j = self.height - 1 - z;
-            let i = x;
-            let elevation = self.elevations.index((i, j));
+        DMatrix::from_fn(self.rows(), self.columns(), |row, column| {
+            let flipped_row = self.rows() - 1 - row;
+            let elevation = self.elevations.index((flipped_row, column));
             (elevation - offset) * scale
         })
     }
@@ -121,9 +136,12 @@ impl Terrain {
 
 #[cfg(test)]
 mod terrain_tests {
-    use image::RgbaImage;
+    use image::{RgbaImage, Rgba};
+    use rapier3d::na::dmatrix;
     use std::io::Cursor;
     use wasm_bindgen_test::*;
+    use crate::terrain::terrain_tests::examples::terrain_as_picture;
+
     use super::*;
 
     pub struct ElevationMapping {
@@ -132,7 +150,9 @@ mod terrain_tests {
     }
 
     mod examples {
-        use image::Rgba;
+        use image::{Rgba, GenericImageView};
+        use crate::terrain::Terrain;
+
         use super::ElevationMapping;
 
         // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
@@ -164,6 +184,19 @@ mod terrain_tests {
         // 34,964 / (256^1) = 136 remainder 148
         // 148 / (256^0) = 148
         pub const D: ElevationMapping = ElevationMapping{ e: 50.0, p: Rgba([1, 136, 148, u8::MAX]) };
+    
+        pub fn terrain_as_picture(terrain: &Terrain) -> String {
+            let mut buf = vec![];
+            for y in 0..terrain.height {
+                let mut line = vec![];
+                for x in 0..terrain.width {
+                    let e = terrain.elevations.index((x, y));
+                    line.push(format!("{}", e));
+                }
+                buf.push(line.join(","));
+            }
+            buf.join(";")
+        }
     }
 
     #[wasm_bindgen_test]
@@ -184,15 +217,23 @@ mod terrain_tests {
 
         let height = 6usize;
         let width = 6usize;
-            let elevations = 
-            DMatrix::from_row_slice(width, height, &[
-                A.e, A.e, B.e, B.e, C.e, C.e,
-                A.e, A.e, B.e, B.e, C.e, C.e,
-                B.e, B.e, B.e, B.e, B.e, B.e,
-                B.e, B.e, B.e, B.e, B.e, B.e,
-                A.e, A.e, B.e, B.e, D.e, D.e,
-                A.e, A.e, B.e, B.e, D.e, D.e,
-            ]);
+        let elevations = 
+        // DMatrix::from_rows(&[
+        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, C.e, C.e ]),
+        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, C.e, C.e ]),
+        //     RowDVector::from_row_slice(&[B.e, B.e, B.e, B.e, B.e, B.e ]),
+        //     RowDVector::from_row_slice(&[B.e, B.e, B.e, B.e, B.e, B.e ]),
+        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, D.e, D.e ]),
+        //     RowDVector::from_row_slice(&[A.e, A.e, B.e, B.e, D.e, D.e ])
+        // ]);
+        nalgebra::dmatrix![
+            A.e, A.e, B.e, B.e, C.e, C.e;
+            A.e, A.e, B.e, B.e, C.e, C.e;
+            B.e, B.e, B.e, B.e, B.e, B.e;
+            B.e, B.e, B.e, B.e, B.e, B.e;
+            A.e, A.e, B.e, B.e, D.e, D.e;
+            A.e, A.e, B.e, B.e, D.e, D.e
+        ];
 
         Terrain {
             elevations,
@@ -207,17 +248,28 @@ mod terrain_tests {
         let height = 3usize;
         let width = 3usize;
         let elevations = 
-            DMatrix::from_row_slice(width, height, &[
-                A.e, B.e, C.e,
-                B.e, B.e, B.e,
-                A.e, B.e, D.e,
-            ]);
+            // DMatrix::from_rows(&[
+            //     RowDVector::from_row_slice(&[A.e, B.e, C.e]),
+            //     RowDVector::from_row_slice(&[B.e, B.e, B.e]),
+            //     RowDVector::from_row_slice(&[A.e, B.e, D.e]),
+            // ]);
+        nalgebra::dmatrix![
+            A.e, B.e, C.e;
+            B.e, B.e, B.e;
+            A.e, B.e, D.e;
+        ];
 
         Terrain {
             elevations,
             width,
             height
         }
+    }
+
+    fn subpixels(pixels: &[Rgba<u8>]) -> Vec<u8> {
+        pixels.iter()
+        .flat_map(|p| vec![p[0], p[1], p[2], p[3]])
+        .collect()
     }
 
     #[wasm_bindgen_test]
@@ -229,6 +281,15 @@ mod terrain_tests {
 
         let mut image_buffer: RgbaImage 
             = ImageBuffer::new(width, height);
+
+        // let image_buffer: RgbaImage = ImageBuffer::from_vec(width, height, subpixels(&[
+        //     A.p, A.p, B.p, B.p, C.p, C.p,
+        //     A.p, A.p, B.p, B.p, C.p, C.p,
+        //     B.p, B.p, B.p, B.p, B.p, B.p,
+        //     B.p, B.p, B.p, B.p, B.p, B.p,
+        //     A.p, A.p, B.p, B.p, D.p, D.p,
+        //     A.p, A.p, B.p, B.p, D.p, D.p
+        // ])).unwrap();
         
         image_buffer.put_pixel(0, 0, A.p);
         image_buffer.put_pixel(1, 0, A.p);
@@ -282,7 +343,10 @@ mod terrain_tests {
 
         assert_eq!(width, terrain.width as u32);
         assert_eq!(height, terrain.height as u32);
-        assert_eq!(expected_terrain.elevations, terrain.elevations);
+        assert_eq!(
+            terrain_as_picture(&expected_terrain), 
+            terrain_as_picture(&terrain)
+        );
 
     }
 
@@ -294,7 +358,64 @@ mod terrain_tests {
 
         assert_eq!(expected.width, actual.width);
         assert_eq!(expected.height, actual.height);
-        assert_eq!(expected.elevations, actual.elevations);
+        assert_eq!(
+            terrain_as_picture(&expected), 
+            terrain_as_picture(&actual));
     }
 
+    #[wasm_bindgen_test]
+    fn test_image_understanding() {
+        use examples::*;
+
+        let width = 2u32;
+        let height = 2u32;
+
+        let mut image_buffer1: RgbaImage 
+            = ImageBuffer::new(width, height);
+
+        image_buffer1.put_pixel(0, 0, A.p);
+        image_buffer1.put_pixel(1, 0, B.p);
+        image_buffer1.put_pixel(0, 1, C.p);
+        image_buffer1.put_pixel(1, 1, D.p);
+
+        let actual_subpixels1 = image_buffer1.to_vec();
+        let expected_subpixels1 = subpixels(&[A.p, B.p, C.p, D.p]);
+
+        assert_eq!(expected_subpixels1, actual_subpixels1);
+
+        let image_buffer2 : RgbaImage
+            = ImageBuffer::from_vec(width, height, subpixels(&[A.p, B.p, C.p, D.p])).unwrap();
+        
+        assert_eq!(A.p, *image_buffer2.get_pixel(0, 0));
+        assert_eq!(B.p, *image_buffer2.get_pixel(1, 0));
+        assert_eq!(C.p, *image_buffer2.get_pixel(0, 1));
+        assert_eq!(D.p, *image_buffer2.get_pixel(1, 1));
+    }
+
+    #[wasm_bindgen_test]
+    fn test_nalgebra_understanding() {
+        let width = 3;        
+        let columns = width;
+        let height = 2;
+        let rows = height;
+
+        let input = vec![
+            vec![0, 1, 2],
+            vec![3, 4, 5],
+        ];
+        let direct = dmatrix![
+            0, 1, 2;
+            3, 4, 5;
+        ];
+        assert_eq!(rows, direct.nrows());
+        assert_eq!(columns, direct.ncols());
+
+        let from_fn = DMatrix::from_fn(rows, columns, |row, column| {
+            let x = column;
+            let y = row;
+            input[y][x]
+        });
+
+        assert_eq!(direct, from_fn);
+    }
 }
