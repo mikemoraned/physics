@@ -204,8 +204,7 @@ function draw(sim, sensorModel, terrain, canvas) {
 }
 
 async function loadTerrainBlob() {
-  const terrain_path =
-    "./src/data/guide-access-elevation-data-example-response-960-5d3c885c50fbb3feea782f36bf241b87.png";
+  const terrain_path = "./src/data/test4.png";
   const response = await fetch(terrain_path);
   console.log(response);
   const blob = await response.blob();
@@ -221,13 +220,13 @@ async function app() {
   const terrainBlob = await loadTerrainBlob();
   const terrainBitmap = await createImageBitmap(terrainBlob);
   const terrainBuffer = new Uint8Array(await terrainBlob.arrayBuffer());
-  const terrain = Terrain.from_png_terrain_image(terrainBuffer)
-    // .halfed()
-    // .halfed()
-    // .halfed()
-    .halfed()
-    .halfed()
-    .halfed();
+  const terrain = Terrain.from_png_terrain_image(terrainBuffer);
+  // .halfed()
+  // .halfed()
+  // .halfed()
+  // .halfed()
+  // .halfed()
+  // .halfed();
   const grayscaleHeightBuffer = terrain.as_grayscale_height_image();
   const grayscaleHeightBlob = new Blob([grayscaleHeightBuffer], {
     type: "image/png",
@@ -269,7 +268,7 @@ async function app() {
       } else {
         sim.set_force(0.0, 0.0);
       }
-      sim.update(elapsedSinceLastUpdate);
+      //   sim.update(elapsedSinceLastUpdate);
       lastUpdate = elapsed;
     }
     draw(sim, sensorModel, grayscaleHeightBitmap, canvas);

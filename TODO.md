@@ -23,5 +23,7 @@ TODOs:
 - (/) encase ball by walls so it can't roll outside
 - (/) add multiple balls
 - (/) add bumpy floor (based on heightfield)
-- (x) derive heightfield from heightfield image
+- (/) derive heightfield from heightfield image
+- (x) ensure mappings are correct
 - (x) make it run reasonably with lots of balls
+  - (x) try converting to run the physics on a worker, and display on main

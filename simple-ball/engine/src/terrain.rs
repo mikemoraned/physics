@@ -36,6 +36,10 @@ impl Terrain {
         let image = result.unwrap();
         console_log!("read image");
 
+        // let elevations 
+        //     = DMatrix::from_fn(image.width() as usize, image.height() as usize, |x, y| {
+        //         image.get_pixel(x as u32, y as u32).to_elevation()
+        // });
         let elevations 
             = DMatrix::from_fn(image.height() as usize, image.width() as usize, |y, x| {
                 image.get_pixel(x as u32, y as u32).to_elevation()
@@ -78,7 +82,7 @@ impl Terrain {
             = ImageBuffer::from_fn(self.width as u32, self.height as u32, |x, y| {
             let elevation = self.elevations.index((x as usize, y as usize));
             let luma = ((elevation - offset) * scale) as u16;
-                image::Luma([luma])
+            image::Luma([luma])
         });
 
         let image = DynamicImage::ImageLuma16(image_buffer);
@@ -117,54 +121,56 @@ impl Terrain {
 
 #[cfg(test)]
 mod terrain_tests {
-    use image::{Rgba, RgbaImage};
+    use image::RgbaImage;
     use std::io::Cursor;
     use wasm_bindgen_test::*;
     use super::*;
 
-    struct ElevationMapping {
+    pub struct ElevationMapping {
         e: f32, 
         p: image::Rgba<u8>
     }
 
-    #[allow(non_snake_case)]
-    struct ElevationMappings {
-        A: ElevationMapping,
-        B: ElevationMapping,
-        C: ElevationMapping,
-    }
+    mod examples {
+        use image::Rgba;
+        use super::ElevationMapping;
 
-    fn elevation_mappings() -> ElevationMappings {
-        ElevationMappings {
-            // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
-            // elevation = -10
-            // invert:
-            // (-10 + 10000) / 0.1 = 99,900
-            // 99,900 / (256^2) = 1 remainder 34,364
-            // 34,364 / (256^1) = 134 remainder 60
-            // 60 / (256^0) = 60
-            A: ElevationMapping{ e: -10.0, p: Rgba([1, 134, 60, u8::MAX]) },
-            // elevation = 0
-            // invert:
-            // (0 + 10000) / 0.1 = 100,000
-            // 100,000 / (256^2) = 1 remainder 34,464
-            // 34,464 / (256^1) = 134 remainder 160
-            // 160 / (256^0) = 160
-            B: ElevationMapping{ e: 0.0, p: Rgba([1, 134, 160, u8::MAX]) },
-            // elevation = 5
-            // invert:
-            // (5 + 10000) / 0.1 = 100,050
-            // 100,050 / (256^2) = 1 remainder 34,514
-            // 34,514 / (256^1) = 134 remainder 210
-            // 210 / (256^0) = 210
-            C: ElevationMapping{ e: 5.0, p: Rgba([1, 134, 210, u8::MAX]) },
-        }
+        // elevation = -10000 + (({R} * 256 * 256 + {G} * 256 + {B}) * 0.1)
+        // elevation = -10
+        // invert:
+        // (-10 + 10000) / 0.1 = 99,900
+        // 99,900 / (256^2) = 1 remainder 34,364
+        // 34,364 / (256^1) = 134 remainder 60
+        // 60 / (256^0) = 60
+        pub const A : ElevationMapping = ElevationMapping{ e: -10.0, p: Rgba([1, 134, 60, u8::MAX]) };
+        // elevation = 0
+        // invert:
+        // (0 + 10000) / 0.1 = 100,000
+        // 100,000 / (256^2) = 1 remainder 34,464
+        // 34,464 / (256^1) = 134 remainder 160
+        // 160 / (256^0) = 160
+        pub const B: ElevationMapping = ElevationMapping{ e: 0.0, p: Rgba([1, 134, 160, u8::MAX]) };
+        // elevation = 5
+        // invert:
+        // (5 + 10000) / 0.1 = 100,050
+        // 100,050 / (256^2) = 1 remainder 34,514
+        // 34,514 / (256^1) = 134 remainder 210
+        // 210 / (256^0) = 210
+        pub const C: ElevationMapping = ElevationMapping{ e: 5.0, p: Rgba([1, 134, 210, u8::MAX]) };
+        // elevation = 50
+        // invert:
+        // (50 + 10000) / 0.1 = 100,500
+        // 100,500 / (256^2) = 1 remainder 34,964
+        // 34,964 / (256^1) = 136 remainder 148
+        // 148 / (256^0) = 148
+        pub const D: ElevationMapping = ElevationMapping{ e: 50.0, p: Rgba([1, 136, 148, u8::MAX]) };
     }
 
     #[wasm_bindgen_test]
     fn test_to_elevation() {
-        let m = elevation_mappings();
-        let examples = vec![m.A, m.B, m.C];
+        use examples::*;
+        
+        let examples = vec![A, B, C, D];
         for example in examples {
             let expected = example.e;
             let input = example.p;
@@ -174,17 +180,18 @@ mod terrain_tests {
     }
 
     fn example_terrain() -> Terrain {
+        use examples::*;
+
         let height = 6usize;
         let width = 6usize;
-        let m = elevation_mappings();
-        let elevations = 
-            DMatrix::from_row_slice(height, width, &[
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                m.B.e, m.B.e, m.B.e, m.B.e, m.B.e, m.B.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
-                m.A.e, m.A.e, m.B.e, m.B.e, m.C.e, m.C.e,
+            let elevations = 
+            DMatrix::from_row_slice(width, height, &[
+                A.e, A.e, B.e, B.e, C.e, C.e,
+                A.e, A.e, B.e, B.e, C.e, C.e,
+                B.e, B.e, B.e, B.e, B.e, B.e,
+                B.e, B.e, B.e, B.e, B.e, B.e,
+                A.e, A.e, B.e, B.e, D.e, D.e,
+                A.e, A.e, B.e, B.e, D.e, D.e,
             ]);
 
         Terrain {
@@ -195,14 +202,15 @@ mod terrain_tests {
     }
 
     fn halfed_terrain() -> Terrain {
+        use examples::*;
+
         let height = 3usize;
         let width = 3usize;
-        let m = elevation_mappings();
         let elevations = 
-            DMatrix::from_row_slice(height, width, &[
-                m.A.e, m.B.e, m.C.e,
-                m.B.e, m.B.e, m.B.e,
-                m.A.e, m.B.e, m.C.e,
+            DMatrix::from_row_slice(width, height, &[
+                A.e, B.e, C.e,
+                B.e, B.e, B.e,
+                A.e, B.e, D.e,
             ]);
 
         Terrain {
@@ -214,54 +222,55 @@ mod terrain_tests {
 
     #[wasm_bindgen_test]
     fn test_from_png_terrain_image() {
+        use examples::*;
+
         let width = 6u32;
         let height = 6u32;
 
-        let m = elevation_mappings();
         let mut image_buffer: RgbaImage 
             = ImageBuffer::new(width, height);
         
-        image_buffer.put_pixel(0, 0, m.A.p);
-        image_buffer.put_pixel(1, 0, m.A.p);
-        image_buffer.put_pixel(2, 0, m.B.p);
-        image_buffer.put_pixel(3, 0, m.B.p);
-        image_buffer.put_pixel(4, 0, m.C.p);
-        image_buffer.put_pixel(5, 0, m.C.p);
+        image_buffer.put_pixel(0, 0, A.p);
+        image_buffer.put_pixel(1, 0, A.p);
+        image_buffer.put_pixel(2, 0, B.p);
+        image_buffer.put_pixel(3, 0, B.p);
+        image_buffer.put_pixel(4, 0, C.p);
+        image_buffer.put_pixel(5, 0, C.p);
 
-        image_buffer.put_pixel(0, 1, m.A.p);
-        image_buffer.put_pixel(1, 1, m.A.p);
-        image_buffer.put_pixel(2, 1, m.B.p);
-        image_buffer.put_pixel(3, 1, m.B.p);
-        image_buffer.put_pixel(4, 1, m.C.p);
-        image_buffer.put_pixel(5, 1, m.C.p);
+        image_buffer.put_pixel(0, 1, A.p);
+        image_buffer.put_pixel(1, 1, A.p);
+        image_buffer.put_pixel(2, 1, B.p);
+        image_buffer.put_pixel(3, 1, B.p);
+        image_buffer.put_pixel(4, 1, C.p);
+        image_buffer.put_pixel(5, 1, C.p);
 
-        image_buffer.put_pixel(0, 2, m.B.p);
-        image_buffer.put_pixel(1, 2, m.B.p);
-        image_buffer.put_pixel(2, 2, m.B.p);
-        image_buffer.put_pixel(3, 2, m.B.p);
-        image_buffer.put_pixel(4, 2, m.B.p);
-        image_buffer.put_pixel(5, 2, m.B.p);
+        image_buffer.put_pixel(0, 2, B.p);
+        image_buffer.put_pixel(1, 2, B.p);
+        image_buffer.put_pixel(2, 2, B.p);
+        image_buffer.put_pixel(3, 2, B.p);
+        image_buffer.put_pixel(4, 2, B.p);
+        image_buffer.put_pixel(5, 2, B.p);
 
-        image_buffer.put_pixel(0, 3, m.B.p);
-        image_buffer.put_pixel(1, 3, m.B.p);
-        image_buffer.put_pixel(2, 3, m.B.p);
-        image_buffer.put_pixel(3, 3, m.B.p);
-        image_buffer.put_pixel(4, 3, m.B.p);
-        image_buffer.put_pixel(5, 3, m.B.p);
+        image_buffer.put_pixel(0, 3, B.p);
+        image_buffer.put_pixel(1, 3, B.p);
+        image_buffer.put_pixel(2, 3, B.p);
+        image_buffer.put_pixel(3, 3, B.p);
+        image_buffer.put_pixel(4, 3, B.p);
+        image_buffer.put_pixel(5, 3, B.p);
 
-        image_buffer.put_pixel(0, 4, m.A.p);
-        image_buffer.put_pixel(1, 4, m.A.p);
-        image_buffer.put_pixel(2, 4, m.B.p);
-        image_buffer.put_pixel(3, 4, m.B.p);
-        image_buffer.put_pixel(4, 4, m.C.p);
-        image_buffer.put_pixel(5, 4, m.C.p);
+        image_buffer.put_pixel(0, 4, A.p);
+        image_buffer.put_pixel(1, 4, A.p);
+        image_buffer.put_pixel(2, 4, B.p);
+        image_buffer.put_pixel(3, 4, B.p);
+        image_buffer.put_pixel(4, 4, D.p);
+        image_buffer.put_pixel(5, 4, D.p);
 
-        image_buffer.put_pixel(0, 5, m.A.p);
-        image_buffer.put_pixel(1, 5, m.A.p);
-        image_buffer.put_pixel(2, 5, m.B.p);
-        image_buffer.put_pixel(3, 5, m.B.p);
-        image_buffer.put_pixel(4, 5, m.C.p);
-        image_buffer.put_pixel(5, 5, m.C.p);
+        image_buffer.put_pixel(0, 5, A.p);
+        image_buffer.put_pixel(1, 5, A.p);
+        image_buffer.put_pixel(2, 5, B.p);
+        image_buffer.put_pixel(3, 5, B.p);
+        image_buffer.put_pixel(4, 5, D.p);
+        image_buffer.put_pixel(5, 5, D.p);
 
         let image = DynamicImage::ImageRgba8(image_buffer);
         let mut cursor = Cursor::new(Vec::new());
