@@ -112,8 +112,9 @@ impl RapierState {
 
         /* Create other structures necessary for the simulation. */
         let gravity = vector![0.0, -9.81, 0.0];
+        let browser_refreshes_per_second = 60.0;
         let integration_parameters = IntegrationParameters { 
-            dt: 1.0 / 1000.0, 
+            dt: 1.0 / browser_refreshes_per_second, 
             ..Default::default()
         };
         let physics_pipeline = PhysicsPipeline::new();
@@ -166,31 +167,23 @@ impl RapierState {
         self.ball_radius
     }
 
-    pub fn step(&mut self, steps: u32, performance: &Performance, max_milliseconds: u32) {
+    pub fn step(&mut self, _steps: u32, _performance: &Performance, _max_milliseconds: u32) {
         let physics_hooks = ();
         let event_handler = ();
 
-        let start_time = performance.now();
-        let mut end_time_of_last_step = start_time;
-        let max_time = start_time + (max_milliseconds as f64);
-        let mut steps_remaining = steps;
-        while steps_remaining > 0 && end_time_of_last_step < max_time {
-            self.physics_pipeline.step(
-                &self.gravity,
-                &self.integration_parameters,
-                &mut self.island_manager,
-                &mut self.broad_phase,
-                &mut self.narrow_phase,
-                &mut self.rigid_body_set,
-                &mut self.collider_set,
-                &mut self.impulse_joint_set,
-                &mut self.multibody_joint_set,
-                &mut self.ccd_solver,
-                &physics_hooks,
-                &event_handler,
-            );
-            steps_remaining -= 1;
-            end_time_of_last_step = performance.now();
-        }
+        self.physics_pipeline.step(
+            &self.gravity,
+            &self.integration_parameters,
+            &mut self.island_manager,
+            &mut self.broad_phase,
+            &mut self.narrow_phase,
+            &mut self.rigid_body_set,
+            &mut self.collider_set,
+            &mut self.impulse_joint_set,
+            &mut self.multibody_joint_set,
+            &mut self.ccd_solver,
+            &physics_hooks,
+            &event_handler,
+        );
     }
 }

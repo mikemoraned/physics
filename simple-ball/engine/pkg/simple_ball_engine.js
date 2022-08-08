@@ -363,10 +363,6 @@ function getImports() {
         const ret = arg0;
         return addHeapObject(ret);
     };
-    imports.wbg.__wbg_now_c2563c77371d3ec4 = function(arg0) {
-        const ret = getObject(arg0).now();
-        return ret;
-    };
     imports.wbg.__wbg_instanceof_Window_42f092928baaee84 = function(arg0) {
         const ret = getObject(arg0) instanceof Window;
         return ret;
