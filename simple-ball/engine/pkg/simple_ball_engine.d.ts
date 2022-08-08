@@ -40,9 +40,9 @@ export class Simulation {
 */
   iter_ball_positions(iter_fn: Function): void;
 /**
-* @param {number} elapsed_since_last_update
+* @param {number} _elapsed_since_last_update
 */
-  update(elapsed_since_last_update: number): void;
+  update(_elapsed_since_last_update: number): void;
 }
 /**
 */

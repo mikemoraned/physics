@@ -12,13 +12,11 @@ use terrain::*;
 use screen::*;
 use dimension::*;
 use arena::*;
-use web_sys::Performance;
 
 #[wasm_bindgen]
 pub struct Simulation {
     screen: Screen,
-    arena: Arena,
-    performance: Performance
+    arena: Arena
 }
 
 #[wasm_bindgen]
@@ -28,16 +26,7 @@ impl Simulation {
         let arena = Arena::new(50.0, num_balls, terrain);
         console_log!("Creating Simulation, with num_balls {:?}, using screen {:?}, terrain of {}x{}, and arena {:?}", 
             num_balls, screen, terrain.width, terrain.height, arena.dimension);
-        let performance = Self::get_performance();
-        Simulation { screen: screen.clone(), arena, performance }
-    }
-
-    fn get_performance() -> Performance {
-        let window = web_sys::window().expect("should have a window in this context");
-        let performance = window
-            .performance()
-            .expect("performance should be available");
-        performance
+        Simulation { screen: screen.clone(), arena }
     }
 
     pub fn set_force(&mut self, x: f32, y: f32) { 
@@ -62,8 +51,7 @@ impl Simulation {
         }
     }
 
-    pub fn update(&mut self, elapsed_since_last_update: u32) {
-        let max_milliseconds = 200;
-        self.arena.physics.step(elapsed_since_last_update, &self.performance, max_milliseconds);
+    pub fn update(&mut self, _elapsed_since_last_update: u32) {
+        self.arena.physics.step();
     }   
 }

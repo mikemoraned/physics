@@ -1,6 +1,5 @@
 
 use rapier3d::prelude::*;
-use web_sys::Performance;
 
 use crate::log::*;
 use crate::terrain::*;
@@ -167,7 +166,7 @@ impl RapierState {
         self.ball_radius
     }
 
-    pub fn step(&mut self, _steps: u32, _performance: &Performance, _max_milliseconds: u32) {
+    pub fn step(&mut self) {
         let physics_hooks = ();
         let event_handler = ();
 
