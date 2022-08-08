@@ -24,6 +24,6 @@ TODOs:
 - (/) add multiple balls
 - (/) add bumpy floor (based on heightfield)
 - (/) derive heightfield from heightfield image
-- (x) ensure mappings are correct
+- (/) ensure mappings are correct
+- (x) try run some physics on a worker, and display on main
 - (x) make it run reasonably with lots of balls
-  - (x) try converting to run the physics on a worker, and display on main
