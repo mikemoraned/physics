@@ -225,7 +225,7 @@ async function app() {
     // .halfed()
     // .halfed()
     // .halfed()
-    .halfed()
+    // .halfed()
     .halfed()
     .halfed();
   const grayscaleHeightBuffer = terrain.as_grayscale_height_image();
@@ -238,8 +238,8 @@ async function app() {
 
   const side_length = canvas.width; // assume width = height
   const screen = new Screen(side_length);
-  const num_balls = 100;
-  //   const num_balls = 200;
+  //   const num_balls = 100;
+  const num_balls = 200;
   const sim = new Simulation(num_balls, terrain, screen);
 
   var sensorModel = registerCanvasForceSensor(canvas);
