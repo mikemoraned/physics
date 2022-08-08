@@ -73,13 +73,10 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_screen_free: (a: number) => void;
   readonly __wbg_get_screen_dimension: (a: number) => number;
   readonly __wbg_set_screen_dimension: (a: number, b: number) => void;
   readonly screen_new: (a: number) => number;
-  readonly __wbg_dimension_free: (a: number) => void;
-  readonly __wbg_get_dimension_side_length: (a: number) => number;
-  readonly __wbg_set_dimension_side_length: (a: number, b: number) => void;
-  readonly __wbg_screen_free: (a: number) => void;
   readonly __wbg_terrain_free: (a: number) => void;
   readonly __wbg_get_terrain_width: (a: number) => number;
   readonly __wbg_set_terrain_width: (a: number, b: number) => void;
@@ -93,6 +90,9 @@ export interface InitOutput {
   readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
+  readonly __wbg_dimension_free: (a: number) => void;
+  readonly __wbg_get_dimension_side_length: (a: number) => number;
+  readonly __wbg_set_dimension_side_length: (a: number, b: number) => void;
   readonly __wbindgen_malloc: (a: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
   readonly __wbindgen_free: (a: number, b: number) => void;

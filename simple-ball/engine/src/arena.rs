@@ -31,8 +31,8 @@ pub struct Arena {
 impl Arena {
     pub fn new(side_length: f32, num_balls: u8, terrain: &Terrain) -> Arena {
         let default_y = 100.0;
-        let balls = Self::random_balls(num_balls, side_length, default_y);
         let ball_radius = 0.01 * side_length;
+        let balls = Self::random_balls(num_balls, ball_radius, side_length, default_y);
         let physics = RapierState::new(balls, ball_radius, side_length, terrain);
         Arena {
             dimension: Dimension { side_length },
@@ -40,17 +40,42 @@ impl Arena {
         }
     }
 
-    fn random_balls(num_balls: u8, side_length: f32, y: Real) -> Vec<Vector<Real>> {
-        use js_sys::Math::random;
-        let mut balls = Vec::new();
-        for _ in 0 .. num_balls {
-            balls.push(vector![
-                side_length * (random() as f32),
-                y,
-                side_length * (random() as f32)
-            ]);
-        }
-        balls
+    // fn random_balls(num_balls: u8, side_length: f32, y: Real) -> Vec<Vector<Real>> {
+    //     use js_sys::Math::random;
+    //     let mut balls = Vec::new();
+    //     for _ in 0 .. num_balls {
+    //         balls.push(vector![
+    //             side_length * (random() as f32),
+    //             y,
+    //             side_length * (random() as f32)
+    //         ]);
+    //     }
+    //     balls
+    // }
+
+    fn random_balls(num_balls: u8, ball_radius: f32, side_length: f32, y: Real) -> Vec<Vector<Real>> {
+       use rand::seq::SliceRandom;
+       use rand::thread_rng;
+
+       let containing_box_side_length = ball_radius * 2.0;
+       let possible_grid_positions_per_axis = (side_length / containing_box_side_length).floor() as u32;
+       let mut possible_grid_positions : Vec<(u32, u32)>
+        = (0..possible_grid_positions_per_axis).into_iter().flat_map(|z| {
+            let row : Vec<(u32, u32)> 
+                = (0..possible_grid_positions_per_axis).into_iter().map(|x| {
+                    (x, z)
+                }).collect();
+            row
+        }).collect();
+        let mut rng = thread_rng();
+        let (selected, _) 
+            = possible_grid_positions.partial_shuffle(&mut rng, num_balls as usize);
+        selected.iter().map(|(x, z)| {
+            vector![
+                ((*x as f32) * containing_box_side_length) + ball_radius, 
+                y, 
+                ((*z as f32) * containing_box_side_length) + ball_radius]
+        }).collect()
     }
 }
 

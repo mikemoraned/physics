@@ -14,6 +14,8 @@ js-sys = "0.3"
 web-sys = { version = "0.3", features = [ "Window", "Performance" ] }
 rapier3d = { version = "*", features = [ "wasm-bindgen", "enhanced-determinism" ] }
 image = "0.24"
+getrandom = { version = "0.2", features = ["js"] }
+rand = "0.8"
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
