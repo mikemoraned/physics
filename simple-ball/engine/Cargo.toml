@@ -16,7 +16,6 @@ rapier3d = { version = "*", features = [ "wasm-bindgen", "enhanced-determinism" 
 image = "0.24"
 getrandom = { version = "0.2", features = ["js"] }
 rand = "0.8"
-# roulette-wheel = "0.2"
 console_error_panic_hook = "0.1"
 
 [dev-dependencies]
