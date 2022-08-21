@@ -1,3 +1,5 @@
+extern crate console_error_panic_hook;
+
 use wasm_bindgen::prelude::*;
 use rapier3d::prelude::*;
 
@@ -23,6 +25,8 @@ pub struct Simulation {
 impl Simulation {
     #[wasm_bindgen(constructor)]
     pub fn new(num_balls: u8, terrain: &Terrain, screen: &Screen) -> Simulation {
+        console_error_panic_hook::set_once();
+
         let arena = Arena::new(50.0, num_balls, terrain);
         console_log!("Creating Simulation, with num_balls {:?}, using screen {:?}, terrain of {}x{}, and arena {:?}", 
             num_balls, screen, terrain.width, terrain.height, arena.dimension);

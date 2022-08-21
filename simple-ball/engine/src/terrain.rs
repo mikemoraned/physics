@@ -17,6 +17,7 @@ impl Elevation for image::Rgba<u8> {
 }
 
 #[wasm_bindgen]
+#[derive(Clone)]
 pub struct Terrain {
     // elevations as stored in a matrix where
     // x = columns, y = rows, where x, y is in screen space
@@ -76,6 +77,16 @@ impl Terrain {
             width: self.width / 2,
             height: self.height / 2
         }
+    }
+
+    pub fn shrink_to_fit(&self, dimension: usize) -> Terrain {
+        let mut terrain = self.clone();
+        while terrain.width > dimension || terrain.height > dimension {
+            console_log!("shrink_to_fit: {}x{}", terrain.width, terrain.height);
+            terrain = terrain.halfed().clone();
+        }
+        console_log!("shrink_to_fit final: {}x{}", terrain.width, terrain.height);
+        terrain
     }
 
     pub fn as_grayscale_height_image(&self) -> Vec<u8> {
