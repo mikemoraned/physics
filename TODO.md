@@ -2,7 +2,7 @@ Overall Idea/Goal:
 
 - simulation of water flowing over real terrain, projected onto a map
 
-TODOs:
+TODOs (from 2022 Summer holiday time):
 
 - (/) simple web-app
   - supports es6 modules
@@ -26,7 +26,11 @@ TODOs:
 - (/) derive heightfield from heightfield image
 - (/) ensure mappings are correct
 - (/) space the random ball placement so that they don't overlap (overlapping balls cause large forces at start, as physics model tries to sort out intersections)
-- (x) randomly place balls with a bias towards placement in lower-lying areas
+- (/) randomly place balls with a bias towards placement in lower-lying areas
+- (/) expose at https://physics.houseofmoran.io/
+
+TODOs (for later):
+
 - (x) make it run reasonably with lots of balls
   - (x) rapier tweaks
   - (x) try run some physics on a worker, and display on main
