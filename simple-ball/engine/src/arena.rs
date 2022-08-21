@@ -88,7 +88,8 @@ impl Arena {
         console_log!("possible_grid_positions_per_axis: {}", possible_grid_positions_per_axis);
         let sized_terrain = terrain.shrink_to_fit(possible_grid_positions_per_axis as usize);
         console_log!("Sized terrain: {}x{}", sized_terrain.width, sized_terrain.height);
-        let heightfield = sized_terrain.as_xz_heightfield(1.0);
+        let max_bucket_value = 20.0;
+        let heightfield = sized_terrain.as_xz_heightfield(max_bucket_value);
         console_log!("Converted to heightfield, shape: {:?}", heightfield.shape());
         let possible_grid_positions : Vec<(u32, u32)>
             = (0..sized_terrain.height).into_iter().flat_map(|z| {
@@ -104,7 +105,9 @@ impl Arena {
                 let row = *z as usize;
                 let column = *x as usize;
                 let index = (row, column);
-                let probability = 1.0f64 + (-1.0f64 * (*heightfield.index(index) as f64));
+                let bucketed_height = *heightfield.index(index) as f64;
+                let probability = 2.0f64.powf((max_bucket_value as f64) - bucketed_height);
+                console_log!("{:?} -> {:?}", bucketed_height, probability);
                 ((*x, *z), probability)
             }).collect();
         console_log!("Created probabilities: {:?}", probababilities);
