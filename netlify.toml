@@ -1,0 +1,4 @@
+[build]
+  base    = "simple-ball/"
+  publish = "."
+  command = "npm run build"

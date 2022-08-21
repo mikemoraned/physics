@@ -1,0 +1,13 @@
+[package]
+name = "local-app"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = "0.7.0"
+bevy_rapier3d = "0.15.0"
+
+[profile.dev.package.bevy_rapier3d]
+opt-level = 3

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Simple Ball</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <script type="module" src="./src/app.js"></script>
+  </head>
+  <body>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <div>
+      <h2>Force</h2>
+      <table>
+        <tr>
+          <td>Apply</td>
+          <td>
+            <span id="force_apply">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>X</td>
+          <td>
+            <span id="force_x">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Y</td>
+          <td>
+            <span id="force_y">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Max</td>
+          <td>
+            <span id="force_max">None</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+    <div>
+      <h2>Sensor</h2>
+      <button id="enable">Enable</button>
+      <button id="reset" disabled="true">Reset</button>
+      <table>
+        <tr>
+          <td>Initial Beta</td>
+          <td>
+            <span id="initial_beta">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Initial Gamma</td>
+          <td>
+            <span id="initial_gamma">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Current Beta</td>
+          <td>
+            <span id="current_beta">None</span>
+          </td>
+        </tr>
+        <tr>
+          <td>Current Gamma</td>
+          <td>
+            <span id="current_gamma">None</span>
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>
