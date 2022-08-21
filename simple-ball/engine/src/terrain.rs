@@ -82,10 +82,8 @@ impl Terrain {
     pub fn shrink_to_fit(&self, dimension: usize) -> Terrain {
         let mut terrain = self.clone();
         while terrain.width > dimension || terrain.height > dimension {
-            console_log!("shrink_to_fit: {}x{}", terrain.width, terrain.height);
             terrain = terrain.halfed().clone();
         }
-        console_log!("shrink_to_fit final: {}x{}", terrain.width, terrain.height);
         terrain
     }
 
