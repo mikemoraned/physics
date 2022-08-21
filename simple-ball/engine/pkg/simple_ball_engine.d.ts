@@ -78,15 +78,15 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_screen_free: (a: number) => void;
+  readonly __wbg_get_screen_dimension: (a: number) => number;
+  readonly __wbg_set_screen_dimension: (a: number, b: number) => void;
+  readonly screen_new: (a: number) => number;
   readonly __wbg_simulation_free: (a: number) => void;
   readonly simulation_new: (a: number, b: number, c: number) => number;
   readonly simulation_set_force: (a: number, b: number, c: number) => void;
   readonly simulation_iter_ball_positions: (a: number, b: number) => void;
   readonly simulation_update: (a: number, b: number) => void;
-  readonly __wbg_screen_free: (a: number) => void;
-  readonly __wbg_get_screen_dimension: (a: number) => number;
-  readonly __wbg_set_screen_dimension: (a: number, b: number) => void;
-  readonly screen_new: (a: number) => number;
   readonly __wbg_terrain_free: (a: number) => void;
   readonly __wbg_get_terrain_width: (a: number) => number;
   readonly __wbg_set_terrain_width: (a: number, b: number) => void;
