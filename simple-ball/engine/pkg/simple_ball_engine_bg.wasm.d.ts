@@ -1,10 +1,6 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
-export function __wbg_screen_free(a: number): void;
-export function __wbg_get_screen_dimension(a: number): number;
-export function __wbg_set_screen_dimension(a: number, b: number): void;
-export function screen_new(a: number): number;
 export function __wbg_simulation_free(a: number): void;
 export function simulation_new(a: number, b: number, c: number): number;
 export function simulation_set_force(a: number, b: number, c: number): void;
@@ -19,6 +15,10 @@ export function terrain_from_png_terrain_image(a: number, b: number): number;
 export function terrain_halfed(a: number): number;
 export function terrain_shrink_to_fit(a: number, b: number): number;
 export function terrain_as_grayscale_height_image(a: number, b: number): void;
+export function __wbg_screen_free(a: number): void;
+export function __wbg_get_screen_dimension(a: number): number;
+export function __wbg_set_screen_dimension(a: number, b: number): void;
+export function screen_new(a: number): number;
 export function __wbg_dimension_free(a: number): void;
 export function __wbg_get_dimension_side_length(a: number): number;
 export function __wbg_set_dimension_side_length(a: number, b: number): void;

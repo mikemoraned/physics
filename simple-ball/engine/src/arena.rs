@@ -90,7 +90,7 @@ impl Arena {
         console_log!("Sized terrain: {}x{}", sized_terrain.width, sized_terrain.height);
         let heightfield = sized_terrain.as_xz_heightfield(1.0);
         console_log!("Converted to heightfield, shape: {:?}", heightfield.shape());
-        let mut possible_grid_positions : Vec<(u32, u32)>
+        let possible_grid_positions : Vec<(u32, u32)>
             = (0..sized_terrain.height).into_iter().flat_map(|z| {
                 let row : Vec<(u32, u32)> 
                     = (0..sized_terrain.width).into_iter().map(|x| {
@@ -99,12 +99,24 @@ impl Arena {
                 row
             }).collect();
         console_log!("Created possible grid positions");
+        let probababilities : Vec<((u32, u32), f64)> 
+            = possible_grid_positions.iter().map(|(x, z)| {
+                let row = *z as usize;
+                let column = *x as usize;
+                let index = (row, column);
+                let probability = 1.0f64 + (-1.0f64 * (*heightfield.index(index) as f64));
+                ((*x, *z), probability)
+            }).collect();
+        console_log!("Created probabilities: {:?}", probababilities);
         let mut rng = thread_rng();
-        let (selected, _) 
-            = possible_grid_positions.partial_shuffle(&mut rng, num_balls as usize);
+        let selected
+            = probababilities.choose_multiple_weighted(
+                &mut rng, 
+                num_balls as usize, 
+                |(_point, probability)| *probability).unwrap();
         let x_scale_up = side_length / (sized_terrain.width as f32);
         let z_scale_up = side_length / (sized_terrain.height as f32);
-        selected.iter().map(|(x, z)| {
+        selected.map(|((x, z), _probability)| {
             vector![
                 ((*x as f32) * x_scale_up) + ball_radius, 
                 y, 
